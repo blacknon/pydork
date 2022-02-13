@@ -1,0 +1,88 @@
+# Copyright (c) 2021 Blacknon. All rights reserved.
+# Use of this source code is governed by an MIT license
+# that can be found in the LICENSE file.
+
+
+name: Test job at Scraping.
+
+on:
+  push:
+    branches:
+      - '**'
+
+jobs:
+  # build rust binary
+  scraping:
+    strategy:
+      matrix:
+        include:
+          - target: google
+            search_text: test_google_text_search
+            search_image: test_google_image_search
+            suggest: test_google_suggest
+            suggest_jap: test_google_suggest_with_jap
+            suggest_alph: test_google_suggest_with_alph
+            suggest_num: test_google_suggest_with_num
+
+          - target: bing
+            search_text: test_bing_text_search
+            search_image: test_bing_image_search
+            suggest: test_bing_suggest
+            suggest_jap: test_bing_suggest_with_jap
+            suggest_alph: test_bing_suggest_with_alph
+            suggest_num: test_bing_suggest_with_num
+
+          - target: baidu
+            search_text: test_baidu_text_search
+            search_image: test_baidu_image_search
+            suggest: test_baidu_suggest
+            suggest_jap: test_baidu_suggest_with_jap
+            suggest_alph: test_baidu_suggest_with_alph
+            suggest_num: test_baidu_suggest_with_num
+
+          - target: yahoo
+            search_text: test_yahoo_text_search
+            search_image: test_yahoo_image_search
+            suggest: test_yahoo_suggest
+            suggest_jap: test_yahoo_suggest_with_jap
+            suggest_alph: test_yahoo_suggest_with_alph
+            suggest_num: test_yahoo_suggest_with_num
+
+          - target: duckduckgo
+            search_text: test_duckduckgo_text_search
+            search_image: test_duckduckgo_image_search
+            suggest: test_duckduckgo_suggest
+            suggest_jap: test_duckduckgo_suggest_with_jap
+            suggest_alph: test_duckduckgo_suggest_with_alph
+            suggest_num: test_duckduckgo_suggest_with_num
+
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v1
+
+      - name: Setup Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.9'
+          architecture: 'x64'
+
+      - name: Get Python version
+        run: python -V
+
+      - name: Install Selenium
+        run: pip install get-chrome-driver --upgrade
+
+
+      - name: Install dependencies
+        run: pip install ./
+
+      - name: Run Test Text Search
+        run: python -m unittest pydork.test_engine_selenium.SearchEngineTestCaseWithSelenium.${{ matrix.search_text }} -v
+
+      - name: Run Test Image Search
+        run: python -m unittest pydork.test_engine_selenium.SearchEngineTestCaseWithSelenium.${{ matrix.search_image }} -v
+
+      - name: Run Test Suggests
+        run: |
+          python -m unittest pydork.test_engine_selenium.SearchEngineTestCaseWithSelenium.${{ matrix.suggest }} -v
+          python -m unittest pydork.test_engine_selenium.SearchEngineTestCaseWithSelenium.${{ matrix.suggest_num }} -v

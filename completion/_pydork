@@ -1,0 +1,65 @@
+#compdef pydork
+# =======================================================
+
+
+_pydork() {
+local context curcontext=$curcontext state line
+declare -A opt_args
+local ret=1
+
+# args
+_arguments -C \
+  '(-h --help)'{-h,--help}'[show help]' \
+  '(-v --version)'{-v,--version}'[show version]' \
+  '1: :__pydork_commands' \
+  '*:: :->modes' \
+  && ret=0
+
+# args and subcommand
+case $state in
+modes)
+case $words[1] in
+search)
+_arguments -C \
+  '(-h --help)'{-h,--help}'[show help]' \
+  '-t[search engine]:_values:(baidu bing duckduckgo google yahoo)' \
+  '(-n --num)'{-n,--num}'[get search result num (int)]:_values:(100 200 300 400 500)' \
+  '(-P --proxy)'{-P,--proxy}'[proxy server]' \
+  '(-s --selenium)'{-s,--selenium}'[Seleniumを使用する]' \
+  '(-S --splash)'{-S,--splash}'[Splashを使用する]' \
+  '(-T --title)'{-T,--title}'[検索結果のタイトルも取得する]' \
+  '(-0 --nullchar)'{-0,--nullchar}'[区切り文字としてNull Characterを使用する]' \
+  '--color[output color(default:auto)]:_values:(auto always none)' \
+  '--debug[debug mode]' \
+  '(-)*:: :->null_state' \
+  && ret=0
+;;
+
+suggest)
+_arguments -C \
+  '(-h --help)'{-h,--help}'[show help]' \
+  '-t[search engine]:_values:(baidu bing duckduckgo google yahoo)' \
+  '--jap[サジェスト取得時に日本語の候補を追加で検索]' \
+  '--alph[サジェスト取得時にアルファベットの候補を追加で検索]' \
+  '--num[サジェスト取得時に数字の候補を追加で検索]' \
+  '(-P --proxy)'{-P,--proxy}'[proxy server]' \
+  '--color[output color(default:auto)]:_values:(auto always none)' \
+  '(-)*:: :->null_state' \
+  && ret=0
+;;
+esac
+;;
+esac
+
+return ret
+}
+
+__pydork_commands () {
+local -a _c
+_c=(
+'search:url検索モード'
+'suggest:suggest取得モード'
+)
+
+_describe -t commands Commands _c
+}
