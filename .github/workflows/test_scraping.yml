@@ -74,7 +74,7 @@ jobs:
         run: pip install get-chrome-driver --upgrade
 
       - name: Install Sphinx
-        run: sudo apt-get install python3-sphinx
+        run: pip install sphinx sphinx-rtd-theme sphinx-autobuild
 
       - name: Install dependencies
         run: pip install ./
