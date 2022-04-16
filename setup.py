@@ -125,7 +125,6 @@ if __name__ == "__main__":
             'selenium_requests',
             'pickle-mixin',
             'sphinx',
-            'sphinx.apidoc',
         ],
         url='https://github.com/blacknon/pydork',
         packages=setuptools.find_packages(),
