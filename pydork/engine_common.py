@@ -99,27 +99,32 @@ class CommonEngine:
         user_agentの指定がない場合、 Chromeを使用したものとする.
         また、もし`browser`が指定されている場合はそのブラウザのUser Agentを指定する.
 
+        注) seleniumを利用する場合、事前に有効にする必要がある。
+
         Args:
             user_agent (str, optional): User Agentを指定する. Defaults to None.
             browser (str, optional): Seleniumで使用するBrowserを指定する([chrome, firefox]). Defaults to None.
         """
 
         if user_agent is None:
-            try:
-                ua = UserAgent(verify_ssl=False, use_cache_server=True)
+            # seleniumが有効になっている場合、そのままSeleniumで利用するブラウザのUAを使用する
+            if self.USE_SELENIUM:
+                user_agent = ''
+            else:
+                try:
+                    ua = UserAgent(verify_ssl=False, use_cache_server=True)
+                    if user_agent is None:
+                        if browser is None:
+                            user_agent = ua.firefox
 
-                if user_agent is None:
-                    if browser is None:
-                        user_agent = ua.firefox
+                        elif browser == 'chrome':
+                            user_agent = ua.chrome
 
-                    elif browser == 'chrome':
-                        user_agent = ua.chrome
+                        elif browser == 'firefox':
+                            user_agent = ua.chrome
 
-                    elif browser == 'firefox':
-                        user_agent = ua.chrome
-
-            except Exception:
-                user_agent = 'Mozilla/5.0 (Linux; Android 10; SM-A205U) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/92.0.4515.131 Mobile Safari/537.36.'
+                except Exception:
+                    user_agent = 'Mozilla/5.0 (Linux; Android 10; SM-A205U) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/92.0.4515.131 Mobile Safari/537.36.'
 
         self.USER_AGENT = user_agent
 
@@ -277,7 +282,6 @@ class CommonEngine:
 
         Seleniumで使用するDriverを作成する関数.
         Optionsもこの関数で作成する.
-
         """
 
         # optionsを取得する
@@ -297,6 +301,13 @@ class CommonEngine:
         elif self.SELENIUM_BROWSER == 'firefox':
             geckodriver_autoinstaller.install()
             self.driver = Firefox(options=options)
+
+        # NOTE:
+        #   User Agentを確認する場合、↓の処理で実施可能(Chrome/Firefoxともに)。
+        # ```python
+        # user_agent = self.driver.execute_script("return navigator.userAgent")
+        # print(user_agent)
+        # ```
 
         return
 
