@@ -8,7 +8,8 @@ name: Test job at Scraping.
 on:
   push:
     branches:
-      - '**'
+      - 'master'
+      - 'develop'
 
 jobs:
   # build rust binary
