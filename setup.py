@@ -147,5 +147,9 @@ if __name__ == "__main__":
                 'project': ('setup.py', name),
                 'version': ('setup.py', version),
                 'release': ('setup.py', release)}},
-        setup_requires=['Sphinx'],
+        setup_requires=[
+            'sphinx',
+            "sphinx-rtd-theme",
+            "sphinx-autobuild",
+        ],
     )
