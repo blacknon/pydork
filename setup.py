@@ -37,7 +37,7 @@ class BuildDocApiDoc(BuildDoc, object):
 
 
 try:
-    with open('README.md') as f:
+    with open('README.rst') as f:
         readme = f.read()
 except IOError:
     readme = ''
@@ -113,9 +113,8 @@ if __name__ == "__main__":
         maintainer_email='blacknon@orebibou.com',
         description='Scraping and listing text and image searches on Google, Bing, DuckDuckGo, Baidu, Yahoo japan.',
         long_description=readme,
-        license="MIT",
+        license='MIT License',
         install_requires=[
-            'argparse',
             'bs4',
             'chromedriver_autoinstaller',
             'geckodriver_autoinstaller',
