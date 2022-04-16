@@ -124,7 +124,6 @@ if __name__ == "__main__":
             'selenium',
             'selenium_requests',
             'pickle-mixin',
-            'sphinx',
         ],
         url='https://github.com/blacknon/pydork',
         packages=setuptools.find_packages(),
@@ -148,5 +147,5 @@ if __name__ == "__main__":
                 'project': ('setup.py', name),
                 'version': ('setup.py', version),
                 'release': ('setup.py', release)}},
-        setup_requires=['sphinx'],
+        setup_requires=['Sphinx'],
     )
