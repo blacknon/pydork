@@ -45,22 +45,26 @@ def run_subcommand(subcommand, args):
     elif subcommand == 'suggest':
         target = suggest
 
+    # create query_list
+    query_list = list()
+    query_list.append(args.query)
+
     tasks = []
     lock = threading.Lock()
-    for st in args.search_type:
+    for search_type in args.search_type:
         # if all
-        if st == 'all':
+        if search_type == 'all':
             for engine in ENGINES:
                 task = threading.Thread(
-                    target=target, args=(engine, args, True, lock, search_mode))
+                    target=target, args=(engine, query_list, args, True, lock, search_mode))
                 tasks.append(task)
 
             continue
 
         # if in searchengine
-        if st in ENGINES:
+        if search_type in ENGINES:
             task = threading.Thread(
-                target=target, args=(st, args, True, lock, search_mode))
+                target=target, args=(search_type, query_list, args, True, lock, search_mode))
             tasks.append(task)
 
             continue
@@ -135,56 +139,21 @@ def set_se_options(se, args):
     return se
 
 
-# 検索
-def search(engine, args, cmd=False, lock=None, mode='text'):
-    """search
+# 検索結果を出力する
+def print_search_result(result, args, message):
+    """print_search_result
+
 
     Args:
-        engine (str): 使用する検索エンジン(.engine.ENGINES).
+        result : SearchEngine.searchのresult.
         args (Namespace): argparseで取得した引数(Namespace).
-        cmd (bool, optional): commandで実行しているか否か. Defaults to False.
-        lock (threading.Lock): threadingのマルチスレッドで使用するLock.現在は未使用. Defaults to None.
-        type (str, optional): 検索タイプ. `text` or `image`.
+        message (common.Message): 出力用Class.
     """
 
-    # start search engine class
-    se = SearchEngine()
-
-    # Set Engine
-    se.set(engine)
-
-    # Set SearchEngine options
-    se = set_se_options(se, args)
-
-    # Set lock
-    se.set_lock(lock)
-
-    # Set color
-    if args.color == 'always' or (args.color == 'auto' and sys.stdout.isatty()):
-        se.set_is_color(True)
-
-    # 検索タイプを設定(テキスト or 画像)
-    search_type = mode
-
-    # 検索を実行
-    result = se.search(
-        args.query, type=search_type,
-        maximum=args.num
-    )
-
-    # sep
+    # 区切り文字を指定
     sep = ': '
     if args.nullchar:
         sep = '\0'
-
-    # debug
-    se.ENGINE.MESSAGE.print_text(
-        json.dumps(result),
-        separator=sep,
-        header=se.ENGINE.MESSAGE.HEADER + ': ' +
-        Color.GRAY + '[DEBUG]: [Result]' + Color.END,
-        mode="debug",
-    )
 
     # title出力を行うか確認
     title_mode = False
@@ -196,7 +165,6 @@ def search(engine, args, cmd=False, lock=None, mode='text'):
     if 'pagelink' in args:
         pagelink_mode = args.pagelink
 
-    # 検索結果を出力
     for d in result:
         data = []
         link = d['link']
@@ -224,11 +192,76 @@ def search(engine, args, cmd=False, lock=None, mode='text'):
 
             data.insert(0, title)
 
-        se.ENGINE.MESSAGE.print_line(*data, separator=sep)
+        message.print_line(*data, separator=sep)
+
+
+# 検索
+def search(engine: str, query_list: list, args, cmd=False, lock=None, mode='text'):
+    """search
+
+    Args:
+        engine (str): 使用する検索エンジン(.engine.ENGINES).
+        query_list(list): 検索クエリのリスト
+        args (Namespace): argparseで取得した引数(Namespace).
+        cmd (bool, optional): commandで実行しているか否か. Defaults to False.
+        lock (threading.Lock): threadingのマルチスレッドで使用するLock.現在は未使用. Defaults to None.
+        type (str, optional): 検索タイプ. `text` or `image`.
+    """
+
+    # start search engine class
+    se = SearchEngine()
+
+    # Set Engine
+    se.set(engine)
+
+    # Set SearchEngine options
+    se = set_se_options(se, args)
+
+    # Set lock
+    se.set_lock(lock)
+
+    # Set color
+    if args.color == 'always' or (args.color == 'auto' and sys.stdout.isatty()):
+        se.set_is_color(True)
+
+    # 検索タイプを設定(テキスト or 画像)
+    search_type = mode
+
+    # 区切り文字を指定
+    sep = ': '
+    if args.nullchar:
+        sep = '\0'
+
+    # json出力時の変数を宣言
+    all_result_json = dict()
+
+    # query_listの内容を順番に処理
+    for query in query_list:
+        # 検索を実行
+        result = se.search(
+            args.query, type=search_type,
+            maximum=args.num
+        )
+
+        # debug
+        se.ENGINE.MESSAGE.print_text(
+            json.dumps(result),
+            separator=sep,
+            header=se.ENGINE.MESSAGE.HEADER + ': ' +
+            Color.GRAY + '[DEBUG]: [Result]' + Color.END,
+            mode="debug",
+        )
+
+        # if args.json:
+        #     result_json = json.dumps(result, ensure_ascii=False, indent=2)
+        #     print(result_json)
+        #     return
+
+        print_search_result(result, args, se.ENGINE.MESSAGE)
 
 
 # サジェスト
-def suggest(engine, args, cmd=False, lock=None, mode=''):
+def suggest(engine: str, query_list: list, args, cmd=False, lock=None, mode=''):
     """suggest
 
     Args:
