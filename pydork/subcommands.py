@@ -49,14 +49,17 @@ def run_subcommand(subcommand, args):
     query_list = list()
     query_list.append(args.query)
 
+    # TODO: allを選択されている場合、他の処理は実行しないようにする
+
     tasks = []
+    thread_result = dict()
     lock = threading.Lock()
     for search_type in args.search_type:
         # if all
         if search_type == 'all':
             for engine in ENGINES:
                 task = threading.Thread(
-                    target=target, args=(engine, query_list, args, True, lock, search_mode))
+                    target=target, args=(engine, query_list, args, thread_result, True, lock, search_mode))
                 tasks.append(task)
 
             continue
@@ -64,7 +67,7 @@ def run_subcommand(subcommand, args):
         # if in searchengine
         if search_type in ENGINES:
             task = threading.Thread(
-                target=target, args=(search_type, query_list, args, True, lock, search_mode))
+                target=target, args=(search_type, query_list, args, thread_result, True, lock, search_mode))
             tasks.append(task)
 
             continue
@@ -74,6 +77,8 @@ def run_subcommand(subcommand, args):
 
     for task in tasks:
         task.join()
+
+    print(json.dumps(thread_result, ensure_ascii=False, indent=2))
 
 
 # SearchEngineのオプション設定用関数
@@ -196,13 +201,14 @@ def print_search_result(result, args, message):
 
 
 # 検索
-def search(engine: str, query_list: list, args, cmd=False, lock=None, mode='text'):
+def search(engine: str, query_list: list, args, thread_result: dict, cmd=False, lock=None, mode='text'):
     """search
 
     Args:
         engine (str): 使用する検索エンジン(.engine.ENGINES).
-        query_list(list): 検索クエリのリスト
+        query_list(list): 検索クエリのリスト.
         args (Namespace): argparseで取得した引数(Namespace).
+        thread_result(dict):
         cmd (bool, optional): commandで実行しているか否か. Defaults to False.
         lock (threading.Lock): threadingのマルチスレッドで使用するLock.現在は未使用. Defaults to None.
         type (str, optional): 検索タイプ. `text` or `image`.
@@ -233,7 +239,7 @@ def search(engine: str, query_list: list, args, cmd=False, lock=None, mode='text
         sep = '\0'
 
     # json出力時の変数を宣言
-    all_result_json = dict()
+    all_result_json = list()
 
     # query_listの内容を順番に処理
     for query in query_list:
@@ -252,21 +258,32 @@ def search(engine: str, query_list: list, args, cmd=False, lock=None, mode='text
             mode="debug",
         )
 
-        # if args.json:
-        #     result_json = json.dumps(result, ensure_ascii=False, indent=2)
-        #     print(result_json)
-        #     return
+        if args.json:
+            # all_result_jsonへ組み込むためのjson方式へ加工.
+            append_result = {
+                'Engine': engine,
+                'query': query,
+                'result': result
+            }
 
-        print_search_result(result, args, se.ENGINE.MESSAGE)
+            all_result_json.append(append_result)
+
+        else:
+            print_search_result(result, args, se.ENGINE.MESSAGE)
+
+    if args.json:
+        thread_result[threading.current_thread().name] = all_result_json
 
 
 # サジェスト
-def suggest(engine: str, query_list: list, args, cmd=False, lock=None, mode=''):
+def suggest(engine: str, query_list: list, args, thread_result: dict, cmd=False, lock=None, mode=''):
     """suggest
 
     Args:
         engine (str): 使用する検索エンジン(.engine.ENGINES).
+        query_list(list): 検索クエリのリスト.
         args (Namespace): argparseで取得した引数(Namespace).
+        thread_result(dict):
         cmd (bool, optional): commandで実行しているか否か. Defaults to False.
         lock (threading.Lock): threadingのマルチスレッドで使用するLock.現在は未使用. Defaults to None.
         mode (str, optional): マルチスレッドでsearchとある程度共用で使えるようにするための引数. 利用していない. Defaults to ''.
