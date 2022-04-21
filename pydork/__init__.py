@@ -56,13 +56,18 @@ def main():
             "default": "JP",
             "choices": ["JP", "US"],
             "type": str,
-            "help": "言語を指定",
+            "help": "国を指定",
         },
         {
             "args": ["-P", "--proxy"],
             "default": "",
             "type": str,
             "help": "プロキシサーバーを指定(例:socks5://hogehoge:8080, https://fugafuga:18080)",
+        },
+        {
+            "args": ["-j", "--json"],
+            "action": "store_true",
+            "help": "json形式で出力する",
         },
         {
             "args": ["-s", "--selenium"],

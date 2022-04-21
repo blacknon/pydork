@@ -20,6 +20,7 @@ import geckodriver_autoinstaller
 from seleniumrequests import Chrome, Firefox
 
 # selenium
+from selenium import webdriver
 from selenium.webdriver.chrome.options import Options as ChromeOptions
 from selenium.webdriver.firefox.options import Options as FirefoxOptions
 from selenium.webdriver.support.ui import WebDriverWait
@@ -299,6 +300,9 @@ class CommonEngine:
             self.driver = Chrome(options=options)
 
         elif self.SELENIUM_BROWSER == 'firefox':
+            # debug comment out.
+            # capabilities = webdriver.DesiredCapabilities().FIREFOX
+            # capabilities['acceptSslCerts'] = True
             geckodriver_autoinstaller.install()
             self.driver = Firefox(options=options)
 
