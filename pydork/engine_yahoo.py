@@ -38,7 +38,10 @@ class Yahoo(CommonEngine):
         self.SEARCH_URL = 'https://search.yahoo.co.jp/search'
         self.IMAGE_PRE_URL = 'https://search.yahoo.co.jp/image/search'
         self.IMAGE_URL = 'https://search.yahoo.co.jp/image/api/search'
-        self.SUGGEST_URL = 'https://n-assist-search.yahooapis.jp/SuggestSearchService/V5/webassistSearch'
+
+        # 2022/04/22 Suggest取得方法をapiへ変更
+        # self.SUGGEST_URL = 'https://n-assist-search.yahooapis.jp/SuggestSearchService/V5/webassistSearch'
+        self.SUGGEST_URL = 'https://ff.search.yahoo.com/gossip'
 
     def gen_search_url(self, keyword: str, type: str):
         """gen_search_url
@@ -147,10 +150,8 @@ class Yahoo(CommonEngine):
             dict: サジェスト取得用url
         """
         url_param = {
-            'query': keyword,   # 検索キーワード
-            # ↓正常に動作しなくなった場合はブラウザからアクセスして更新！ (TODO:自動取得処理の追加)
-            'appid': 'dj0zaiZpPVU5MGlSOUZ4cHVLbCZzPWNvbnN1bWVyc2VjcmV0Jng9ZGQ-',
-            'callback': 'json',
+            'command': keyword,   # 検索キーワード
+            'output': 'json',
         }
 
         params = parse.urlencode(url_param)
@@ -264,15 +265,16 @@ class Yahoo(CommonEngine):
             dict: サジェスト配列
         """
 
-        if self.USE_SELENIUM:
-            soup = BeautifulSoup(html, "lxml")
-            json_data = soup.select_one('pre')
-            data = json.loads(json_data.text)
-        else:
-            data = json.loads(html)
+        # if self.USE_SELENIUM:
+        #     soup = BeautifulSoup(html, "lxml")
+        #     json_data = soup.select_one('pre')
+        #     data = json.loads(json_data.text)
+        # else:
+        #     data = json.loads(html)
 
-        suggests[char if char == '' else char[-1]] = [e['Suggest']
-                                                      for e in data['Result']]
+        data = json.loads(html)
+        suggests[char if char == '' else char[-1]] = [e['key']
+                                                      for e in data['gossip']['results']]
 
         return suggests
 
