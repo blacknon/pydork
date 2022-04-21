@@ -38,9 +38,6 @@ class Yahoo(CommonEngine):
         self.SEARCH_URL = 'https://search.yahoo.co.jp/search'
         self.IMAGE_PRE_URL = 'https://search.yahoo.co.jp/image/search'
         self.IMAGE_URL = 'https://search.yahoo.co.jp/image/api/search'
-
-        # 2022/04/22 Suggest取得方法をapiへ変更
-        # self.SUGGEST_URL = 'https://n-assist-search.yahooapis.jp/SuggestSearchService/V5/webassistSearch'
         self.SUGGEST_URL = 'https://ff.search.yahoo.com/gossip'
 
     def gen_search_url(self, keyword: str, type: str):
@@ -264,14 +261,6 @@ class Yahoo(CommonEngine):
         Returns:
             dict: サジェスト配列
         """
-
-        # if self.USE_SELENIUM:
-        #     soup = BeautifulSoup(html, "lxml")
-        #     json_data = soup.select_one('pre')
-        #     data = json.loads(json_data.text)
-        # else:
-        #     data = json.loads(html)
-
         data = json.loads(html)
         suggests[char if char == '' else char[-1]] = [e['key']
                                                       for e in data['gossip']['results']]

@@ -300,6 +300,7 @@ class CommonEngine:
             self.driver = Chrome(options=options)
 
         elif self.SELENIUM_BROWSER == 'firefox':
+            # debug comment out.
             # capabilities = webdriver.DesiredCapabilities().FIREFOX
             # capabilities['acceptSslCerts'] = True
             geckodriver_autoinstaller.install()
@@ -519,8 +520,7 @@ class CommonEngine:
         # 優先度3: request.sessionからのリクエスト(SeleniumもSplashも有効でない場合)
         else:
             if method == 'GET':
-                # result = self.session.get(url).text
-                result = self.session.get(url, verify=False).text
+                result = self.session.get(url).text
             elif method == 'POST':
                 result = self.session.post(url, data=data).text
 
