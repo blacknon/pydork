@@ -60,7 +60,7 @@ def run_subcommand(subcommand, args):
 
         # if in searchengine
         if search_type in ENGINES:
-            engine_list.append(engine)
+            engine_list.append(search_type)
             continue
 
     # engine_listから、重複したリストを削除
@@ -320,14 +320,29 @@ def suggest(engine: str, query_list: list, args, thread_result: dict, cmd=False,
         header = sc.out(header)
     se.ENGINE.MESSAGE.set_header(header)
 
-    # Suggestを取得
-    result = se.suggest(
-        args.query,
-        jap=args.jap,
-        alph=args.alph,
-        num=args.num,
-    )
+    # json出力時の変数を宣言
+    all_result_json = list()
 
-    for words in result.values():
-        for w in words:
-            se.ENGINE.MESSAGE.print_line(w, separator=": ")
+    # Suggestを取得
+    for query in query_list:
+        result = se.suggest(
+            args.query,
+            jap=args.jap,
+            alph=args.alph,
+            num=args.num,
+        )
+
+        for words in result.values():
+            if args.json:
+                append_result = {
+                    'query': query,
+                    'result': words
+                }
+                all_result_json.append(append_result)
+
+            else:
+                for w in words:
+                    se.ENGINE.MESSAGE.print_line(w, separator=": ")
+
+    if args.json:
+        thread_result[engine] = all_result_json

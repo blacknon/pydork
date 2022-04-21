@@ -20,6 +20,7 @@ import geckodriver_autoinstaller
 from seleniumrequests import Chrome, Firefox
 
 # selenium
+from selenium import webdriver
 from selenium.webdriver.chrome.options import Options as ChromeOptions
 from selenium.webdriver.firefox.options import Options as FirefoxOptions
 from selenium.webdriver.support.ui import WebDriverWait
@@ -299,6 +300,8 @@ class CommonEngine:
             self.driver = Chrome(options=options)
 
         elif self.SELENIUM_BROWSER == 'firefox':
+            # capabilities = webdriver.DesiredCapabilities().FIREFOX
+            # capabilities['acceptSslCerts'] = True
             geckodriver_autoinstaller.install()
             self.driver = Firefox(options=options)
 
@@ -516,7 +519,8 @@ class CommonEngine:
         # 優先度3: request.sessionからのリクエスト(SeleniumもSplashも有効でない場合)
         else:
             if method == 'GET':
-                result = self.session.get(url).text
+                # result = self.session.get(url).text
+                result = self.session.get(url, verify=False).text
             elif method == 'POST':
                 result = self.session.post(url, data=data).text
 
