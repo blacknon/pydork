@@ -34,7 +34,16 @@ def main():
             "args": ["query"],
             "action": "store",
             "type": str,
+            "nargs": "?",
+            "default": "",
             "help": "検索文字列(クエリ)",
+        },
+        {
+            "args": ["-f", "--file"],
+            "action": "store",
+            "type": str,
+            "default": "",
+            "help": "検索文字列(クエリ)が書かれているファイル",
         },
         {
             "args": ["-t", "--search_type"],

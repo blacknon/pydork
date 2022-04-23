@@ -261,6 +261,9 @@ class Yahoo(CommonEngine):
         Returns:
             dict: サジェスト配列
         """
+        if self.USE_SELENIUM and self.SELENIUM_BROWSER == 'firefox':
+            soup = BeautifulSoup(html, features="lxml")
+            html = soup.find("pre").text
         data = json.loads(html)
         suggests[char if char == '' else char[-1]] = [e['key']
                                                       for e in data['gossip']['results']]
