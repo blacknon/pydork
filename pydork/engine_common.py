@@ -300,11 +300,18 @@ class CommonEngine:
             self.driver = Chrome(options=options)
 
         elif self.SELENIUM_BROWSER == 'firefox':
+            # profileを作成する
+            profile = webdriver.FirefoxProfile()
+            profile.set_preference('devtools.jsonview.enabled', False)
+            profile.set_preference('plain_text.wrap_long_lines', False)
+            profile.set_preference('view_source.wrap_long_lines', False)
+
             # debug comment out.
             # capabilities = webdriver.DesiredCapabilities().FIREFOX
             # capabilities['acceptSslCerts'] = True
+
             geckodriver_autoinstaller.install()
-            self.driver = Firefox(options=options)
+            self.driver = Firefox(options=options, firefox_profile=profile)
 
         # NOTE:
         #   User Agentを確認する場合、↓の処理で実施可能(Chrome/Firefoxともに)。

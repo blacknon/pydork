@@ -10,6 +10,7 @@
 import sys
 import threading
 import json
+import os
 
 from .engine import SearchEngine, ENGINES
 from .common import Color
@@ -24,6 +25,17 @@ def run_subcommand(subcommand, args):
         subcommand (str): 使用するサブコマンド([search, suggest]).
         args (Namespace): argparseで取得した引数(Namespace).
     """
+
+    # query及びfileがともに指定なしの場合、エラーにして返す
+    if args.query == "" and args.file == "":
+        print("Error: クエリもしくはファイルを指定してください.")
+        return
+
+    # args.fileのチェック
+    if args.file != "":
+        if not os.path.exists(args.file):
+            print("Error: ファイルが存在しません.")
+            return
 
     target = None
     search_mode = ''
@@ -47,7 +59,16 @@ def run_subcommand(subcommand, args):
 
     # create query_list
     query_list = list()
-    query_list.append(args.query)
+
+    # append query
+    if args.query != "":
+        query_list.append(args.query)
+
+    # append query in file
+    if args.file != "":
+        with open(args.file) as f:
+            file_querys = [s.strip() for s in f.readlines()]
+            query_list.extend(file_querys)
 
     # engine_listへ、選択されているsearch engineを入れていく
     engine_list = []
@@ -249,7 +270,7 @@ def search(engine: str, query_list: list, args, thread_result: dict, cmd=False, 
     for query in query_list:
         # 検索を実行
         result = se.search(
-            args.query, type=search_type,
+            query, type=search_type,
             maximum=args.num
         )
 
@@ -326,7 +347,7 @@ def suggest(engine: str, query_list: list, args, thread_result: dict, cmd=False,
     # Suggestを取得
     for query in query_list:
         result = se.suggest(
-            args.query,
+            query,
             jap=args.jap,
             alph=args.alph,
             num=args.num,
