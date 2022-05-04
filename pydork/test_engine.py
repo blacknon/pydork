@@ -16,7 +16,7 @@ import unittest
 from .engine import SearchEngine
 
 # 変数
-SEARCH_TEXT = 'Linux'
+SEARCH_TEXT = 'Windows'
 
 
 class SearchEngineTestCase(unittest.TestCase):
