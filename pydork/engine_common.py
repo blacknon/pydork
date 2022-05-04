@@ -20,6 +20,7 @@ import geckodriver_autoinstaller
 from seleniumrequests import Chrome, Firefox
 
 # selenium
+from selenium import webdriver
 from selenium.webdriver.chrome.options import Options as ChromeOptions
 from selenium.webdriver.firefox.options import Options as FirefoxOptions
 from selenium.webdriver.support.ui import WebDriverWait
@@ -99,27 +100,32 @@ class CommonEngine:
         user_agentの指定がない場合、 Chromeを使用したものとする.
         また、もし`browser`が指定されている場合はそのブラウザのUser Agentを指定する.
 
+        注) seleniumを利用する場合、事前に有効にする必要がある。
+
         Args:
             user_agent (str, optional): User Agentを指定する. Defaults to None.
             browser (str, optional): Seleniumで使用するBrowserを指定する([chrome, firefox]). Defaults to None.
         """
 
         if user_agent is None:
-            try:
-                ua = UserAgent(verify_ssl=False, use_cache_server=True)
+            # seleniumが有効になっている場合、そのままSeleniumで利用するブラウザのUAを使用する
+            if self.USE_SELENIUM:
+                user_agent = ''
+            else:
+                try:
+                    ua = UserAgent(verify_ssl=False, use_cache_server=True)
+                    if user_agent is None:
+                        if browser is None:
+                            user_agent = ua.firefox
 
-                if user_agent is None:
-                    if browser is None:
-                        user_agent = ua.firefox
+                        elif browser == 'chrome':
+                            user_agent = ua.chrome
 
-                    elif browser == 'chrome':
-                        user_agent = ua.chrome
+                        elif browser == 'firefox':
+                            user_agent = ua.chrome
 
-                    elif browser == 'firefox':
-                        user_agent = ua.chrome
-
-            except Exception:
-                user_agent = 'Mozilla/5.0 (Linux; Android 10; SM-A205U) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/92.0.4515.131 Mobile Safari/537.36.'
+                except Exception:
+                    user_agent = 'Mozilla/5.0 (Linux; Android 10; SM-A205U) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/92.0.4515.131 Mobile Safari/537.36.'
 
         self.USER_AGENT = user_agent
 
@@ -277,7 +283,6 @@ class CommonEngine:
 
         Seleniumで使用するDriverを作成する関数.
         Optionsもこの関数で作成する.
-
         """
 
         # optionsを取得する
@@ -295,8 +300,25 @@ class CommonEngine:
             self.driver = Chrome(options=options)
 
         elif self.SELENIUM_BROWSER == 'firefox':
+            # profileを作成する
+            profile = webdriver.FirefoxProfile()
+            profile.set_preference('devtools.jsonview.enabled', False)
+            profile.set_preference('plain_text.wrap_long_lines', False)
+            profile.set_preference('view_source.wrap_long_lines', False)
+
+            # debug comment out.
+            # capabilities = webdriver.DesiredCapabilities().FIREFOX
+            # capabilities['acceptSslCerts'] = True
+
             geckodriver_autoinstaller.install()
-            self.driver = Firefox(options=options)
+            self.driver = Firefox(options=options, firefox_profile=profile)
+
+        # NOTE:
+        #   User Agentを確認する場合、↓の処理で実施可能(Chrome/Firefoxともに)。
+        # ```python
+        # user_agent = self.driver.execute_script("return navigator.userAgent")
+        # print(user_agent)
+        # ```
 
         return
 
@@ -550,7 +572,7 @@ class CommonEngine:
 
         if type == 'text':
             # link, titleの組み合わせを取得する
-            elinks, etitles = self.get_text_links(soup)
+            elinks, etitles, etexts = self.get_text_links(soup)
 
             # before processing elists
             self.MESSAGE.print_text(
@@ -571,7 +593,8 @@ class CommonEngine:
             )
 
             # 加工処理を行う関数に渡す(各エンジンで独自対応)
-            elinks, etitles = self.processings_elist(elinks, etitles)
+            elinks, etitles, etexts = self.processings_elist(
+                elinks, etitles, etexts)
 
             # after processing elists
             self.MESSAGE.print_text(
@@ -593,7 +616,7 @@ class CommonEngine:
 
             # dictに加工してリスト化する
             # [{'title': 'title...', 'link': 'https://hogehoge....'}, {...}]
-            links = self.create_text_links(elinks, etitles)
+            links = self.create_text_links(elinks, etitles, etexts)
 
             return links
 
@@ -623,7 +646,11 @@ class CommonEngine:
         elements = soup.select(self.SOUP_SELECT_TITLE)
         etitles = [e.text for e in elements]
 
-        return elinks, etitles
+        # linkのtextを取得する
+        elements = soup.select(self.SOUP_SELECT_TEXT)
+        etext = [e.text for e in elements]
+
+        return elinks, etitles, etext
 
     # 画像検索ページの検索結果(links(list()))を生成するfunction
     def get_image_links(self, soup: BeautifulSoup):
@@ -643,7 +670,7 @@ class CommonEngine:
         return links
 
     # elist, etitle生成時の追加編集処理用function
-    def processings_elist(self, elinks: list, etitles: list):
+    def processings_elist(self, elinks, etitles, etexts: list):
         """processings_elist
 
         self.get_links 内で、取得直後のelinks, etitlesに加工を加えるための関数.
@@ -652,16 +679,18 @@ class CommonEngine:
         Args:
             elinks (list): elinks(検索結果のlink)の配列
             etitles (list): etitles(検索結果のtitle)の配列
+            etexts (list): etexts(検索結果のtext)の配列
 
         Returns:
             elinks (list): elinks(検索結果のlink)の配列
             etitles (list): etitles(検索結果のtitle)の配列
+            etexts (list): etexts(検索結果のtext)の配列
         """
 
-        return elinks, etitles
+        return elinks, etitles, etexts
 
     # テキスト検索の1ページごとの検索結果から、links(links([{link: ..., title: ...},...]))を生成するfunction
-    def create_text_links(self, elinks: list, etitles: list):
+    def create_text_links(self, elinks, etitles, etext: list):
         """create_text_links
 
         elinks, etitlesからlinks(get_linksのデータ)を返す関数.
@@ -669,19 +698,26 @@ class CommonEngine:
         Args:
             elinks (list): elinks(検索結果のlink)の配列
             etitles (list): etitles(検索結果のtitle)の配列
+            etext (list): etext(検索結果のテキスト)の配列
 
         Returns:
-            list: 検索結果(`[{'title': 'title...', 'url': 'https://hogehoge....'}, {...}]`)
+            list: 検索結果(`[{'title': 'title...', 'url': 'https://hogehoge....', 'text': 'hogehoge fugafuga...'}, {...}]`)を返す。
         """
 
         links = list()
         n = 0
         before_link = ""
         for link in elinks:
+            d = dict()
+            d['link'] = link
+
+            # etitle(urlのtitle)をdictに追加する
             if len(etitles) > n:
-                d = {"link": link, "title": etitles[n]}
-            else:
-                d = {"link": link}
+                d['title'] = etitles[n]
+
+            # etext(urlに対応する検索結果のテキスト文)をdictに追加する
+            if len(etext) > n:
+                d['text'] = etext[n]
 
             if before_link != link:
                 links.append(d)

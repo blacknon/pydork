@@ -514,6 +514,4 @@ class SearchEngine:
         # sessionを終了
         self.ENGINE.close_session()
 
-        print(suggests)
-
         return suggests

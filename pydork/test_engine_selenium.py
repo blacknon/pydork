@@ -16,7 +16,7 @@ import unittest
 from .engine import SearchEngine
 
 # 変数
-SEARCH_TEXT = 'Legend of Zelda'
+SEARCH_TEXT = 'Linux'
 
 
 class SearchEngineTestCaseWithSelenium(unittest.TestCase):
@@ -39,9 +39,6 @@ class SearchEngineTestCaseWithSelenium(unittest.TestCase):
         print("tearDown!!")
 
     def common_settings(self):
-        # user agentを定義
-        self.search_engine.set_user_agent()
-
         # command modeを有効化
         self.search_engine.set_is_command(True)
 
@@ -50,6 +47,9 @@ class SearchEngineTestCaseWithSelenium(unittest.TestCase):
 
         # seleniumを有効化
         self.search_engine.set_selenium(None, 'chrome')
+
+        # user agentを定義
+        self.search_engine.set_user_agent()
 
     # ==========
     # Baidu
@@ -147,7 +147,7 @@ class SearchEngineTestCaseWithSelenium(unittest.TestCase):
         data = self.search_engine.search(SEARCH_TEXT, maximum=30)
 
         print("{} count.".format(len(data)))
-        self.assertEqual(30, len(data))
+        self.assertNotEqual(0, len(data))
 
     def test_bing_image_search(self):
         print('Test Bing image search.')

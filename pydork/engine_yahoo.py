@@ -38,7 +38,7 @@ class Yahoo(CommonEngine):
         self.SEARCH_URL = 'https://search.yahoo.co.jp/search'
         self.IMAGE_PRE_URL = 'https://search.yahoo.co.jp/image/search'
         self.IMAGE_URL = 'https://search.yahoo.co.jp/image/api/search'
-        self.SUGGEST_URL = 'https://n-assist-search.yahooapis.jp/SuggestSearchService/V5/webassistSearch'
+        self.SUGGEST_URL = 'https://ff.search.yahoo.com/gossip'
 
     def gen_search_url(self, keyword: str, type: str):
         """gen_search_url
@@ -147,9 +147,7 @@ class Yahoo(CommonEngine):
             dict: サジェスト取得用url
         """
         url_param = {
-            'query': keyword,   # 検索キーワード
-            # ↓正常に動作しなくなった場合はブラウザからアクセスして更新！ (TODO:自動取得処理の追加)
-            'eappid': 'fsj_i3itmbzOmFv2txHkxs_7_haRWhkb8W4Xkmdd.4bua0FTNAVc0G4hE6ThCR.KUnJnkEH49WOnqSe2mNz..qnR90CAq2jVyC.jc8qvCmgR8TLOkfsk5LKTSqtoKjjz_svDg_9GrNEhTiw9XE5e',
+            'command': keyword,   # 検索キーワード
             'output': 'json',
         }
 
@@ -175,6 +173,7 @@ class Yahoo(CommonEngine):
             if self.USE_SPLASH or self.USE_SELENIUM:
                 self.SOUP_SELECT_JSON = '#__NEXT_DATA__'
                 self.SOUP_SELECT_IMAGE = '.rg_meta.notranslate'
+                self.SOUP_SELECT_TEXT = ''
 
                 # Yahooの場合、jsonから検索結果を取得する
                 soup = BeautifulSoup(html, 'lxml')
@@ -200,12 +199,14 @@ class Yahoo(CommonEngine):
 
                 elinks = [e['url'] for e in jd]
                 etitles = [e['title'] for e in jd]
+                etexts = [e['description'] for e in jd]
 
-                links = self.create_text_links(elinks, etitles)
+                links = self.create_text_links(elinks, etitles, etexts)
 
             else:
-                self.SOUP_SELECT_URL = '.sw-Card__title > a'
-                self.SOUP_SELECT_TITLE = '.sw-Card__title > a > h3'
+                self.SOUP_SELECT_URL = '.sw-Card__headerSpace > .sw-Card__title > a'
+                self.SOUP_SELECT_TITLE = '.sw-Card__headerSpace > .sw-Card__title > a > h3'
+                self.SOUP_SELECT_TEXT = '.sw-Card__floatContainer > .sw-Card__summary'
 
                 # CommonEngineの処理を呼び出す
                 links = super().get_links(html, type)
@@ -263,16 +264,12 @@ class Yahoo(CommonEngine):
         Returns:
             dict: サジェスト配列
         """
-
-        if self.USE_SELENIUM:
-            soup = BeautifulSoup(html, "lxml")
-            json_data = soup.select_one('pre')
-            data = json.loads(json_data.text)
-        else:
-            data = json.loads(html)
-
-        suggests[char if char == '' else char[-1]] = [e['Suggest']
-                                                      for e in data['Result']]
+        if self.USE_SELENIUM and self.SELENIUM_BROWSER == 'firefox':
+            soup = BeautifulSoup(html, features="lxml")
+            html = soup.find("pre").text
+        data = json.loads(html)
+        suggests[char if char == '' else char[-1]] = [e['key']
+                                                      for e in data['gossip']['results']]
 
         return suggests
 

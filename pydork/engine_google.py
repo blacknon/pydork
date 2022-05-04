@@ -191,16 +191,19 @@ class Google(CommonEngine):
             # request or seleniumの定義
             self.SOUP_SELECT_URL = '#main > div > div > .kCrYT > a'
             self.SOUP_SELECT_TITLE = '#main > div > div > .kCrYT > a > h3 > div'
+            self.SOUP_SELECT_TEXT = '#main > div > div > .kCrYT > div > div > div > div > div'
 
             # Selenium経由、かつFirefoxを使っている場合
             if self.USE_SELENIUM and self.SELENIUM_BROWSER == 'firefox':
-                self.SOUP_SELECT_URL = '.yuRUbf > a'
-                self.SOUP_SELECT_TITLE = '.yuRUbf > a > .LC20lb'
+                self.SOUP_SELECT_URL = '.jtfYYd > div > .yuRUbf > a'
+                self.SOUP_SELECT_TITLE = '.jtfYYd > div > .yuRUbf > a > .LC20lb'
+                self.SOUP_SELECT_TEXT = '.jtfYYd > div > div'
 
             # Splash経由で通信している場合
             elif self.USE_SPLASH:
-                self.SOUP_SELECT_URL = '.tF2Cxc > .yuRUbf > a'
-                self.SOUP_SELECT_TITLE = '.tF2Cxc > .yuRUbf > a > .LC20lb'
+                self.SOUP_SELECT_URL = '.yuRUbf > a'
+                self.SOUP_SELECT_TITLE = '.yuRUbf > a > .LC20lb'
+                self.SOUP_SELECT_TEXT = '.jtfYYd > div > div'
 
             # CommonEngineの処理を呼び出す
             links = super().get_links(html, type)
@@ -287,7 +290,7 @@ class Google(CommonEngine):
 
         return suggests
 
-    def processings_elist(self, elinks: list, etitles: list):
+    def processings_elist(self, elinks, etitles, etexts: list):
         """processings_elist
 
         self.get_links 内で、取得直後のelinks, etitlesに加工を加えるための関数.
@@ -295,10 +298,12 @@ class Google(CommonEngine):
         Args:
             elinks (list): elinks(検索結果のlink)の配列
             etitles (list): etitles(検索結果のtitle)の配列
+            etexts (list): etexts(検索結果のtext)の配列
 
         Returns:
             elinks (list): elinks(検索結果のlink)の配列
             etitles (list): etitles(検索結果のtitle)の配列
+            etexts (list): etexts(検索結果のtext)の配列
         """
 
         # seleniumでfirefoxを使っていない、かつsplashを使っていない場合
@@ -316,7 +321,7 @@ class Google(CommonEngine):
                 new_elinks.append(elink)
         elinks = list(dict.fromkeys(new_elinks))
 
-        return elinks, etitles
+        return elinks, etitles, etexts
 
     def bypass_recaptcha_selenium(self, url: str, html: str):
         """bypass_recaptcha_selenium
