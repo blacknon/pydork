@@ -147,7 +147,7 @@ class SearchEngineTestCaseWithSelenium(unittest.TestCase):
         data = self.search_engine.search(SEARCH_TEXT, maximum=30)
 
         print("{} count.".format(len(data)))
-        self.assertEqual(30, len(data))
+        self.assertNotEqual(0, len(data))
 
     def test_bing_image_search(self):
         print('Test Bing image search.')
