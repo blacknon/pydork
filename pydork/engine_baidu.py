@@ -153,8 +153,9 @@ class Baidu(CommonEngine):
 
         if type == 'text':
             # Splash経由で通信している場合
-            self.SOUP_SELECT_URL = '.result > .t > a'
-            self.SOUP_SELECT_TITLE = '.result > .t > a'
+            self.SOUP_SELECT_URL = '.tts-title > a'
+            self.SOUP_SELECT_TITLE = '.tts-title > a'
+            self.SOUP_SELECT_TEXT = '.c-gap-top-small > span'
 
             # CommonEngineの処理を呼び出す
             links = super().get_links(html, type)
@@ -241,7 +242,7 @@ class Baidu(CommonEngine):
                           for e in data['g']]
         return suggests
 
-    def processings_elist(self, elinks: list, etitles: list):
+    def processings_elist(self, elinks, etitles, etexts: list):
         """processings_elist
 
         self.get_links 内で、取得直後のelinks, etitlesに加工を加えるための関数.
@@ -250,10 +251,12 @@ class Baidu(CommonEngine):
         Args:
             elinks (list): elinks(検索結果のlink)の配列
             etitles (list): etitles(検索結果のtitle)の配列
+            etexts (list): etexts(検索結果のtext)の配列
 
         Returns:
             elinks (list): elinks(検索結果のlink)の配列
             etitles (list): etitles(検索結果のtitle)の配列
+            etexts (list): etexts(検索結果のtext)の配列
         """
 
         # 通常のスクレイピングとは別にセッションを作成
@@ -290,7 +293,7 @@ class Baidu(CommonEngine):
             resolv_links(loop, session, elinks))
         loop.close()
 
-        return elinks, etitles
+        return elinks, etitles, etexts
 
 
 async def resolv_links(loop: asyncio.AbstractEventLoop, session: requests.Session, links: list):
@@ -330,13 +333,15 @@ def resolv_url(session: requests.Session, url: str):
     Returns:
         url (str): リダイレクト先のurl
     """
-    try:
-        res_header = session.head(url, allow_redirects=False).headers
-    except requests.RequestException:
-        return url
-    except ConnectionError:
-        return url
-    else:
-        url = res_header['Location']
+    while True:
+        try:
+            res_header = session.head(url, allow_redirects=False).headers
+        except requests.RequestException:
+            continue
+        except ConnectionError:
+            continue
+        else:
+            url = res_header['Location']
+            break
 
     return url

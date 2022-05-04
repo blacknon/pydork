@@ -157,6 +157,7 @@ class Bing(CommonEngine):
         if type == 'text':
             self.SOUP_SELECT_URL = 'h2 > a'
             self.SOUP_SELECT_TITLE = 'h2 > a'
+            self.SOUP_SELECT_TEXT = 'li > div > p'
 
         elif type == 'image':
             self.SOUP_SELECT_URL = '.imgpt > .iusc'
@@ -219,7 +220,7 @@ class Bing(CommonEngine):
                                                       for e in elements]
         return suggests
 
-    def processings_elist(self, elinks: list, etitles: list):
+    def processings_elist(self, elinks, etitles, etexts: list):
         """processings_elist
 
         self.get_links 内で、取得直後のelinks, etitlesに加工を加えるための関数.
@@ -227,10 +228,12 @@ class Bing(CommonEngine):
         Args:
             elinks (list): elinks(検索結果のlink)の配列
             etitles (list): etitles(検索結果のtitle)の配列
+            etexts (list): etexts(検索結果のtext)の配列
 
         Returns:
             elinks (list): elinks(検索結果のlink)の配列
             etitles (list): etitles(検索結果のtitle)の配列
+            etexts (list): etexts(検索結果のtext)の配列
         """
         new_elinks = list()
         new_etitles = list()
@@ -246,4 +249,4 @@ class Bing(CommonEngine):
                     new_etitles.append(etitles[n])
             n += 1
 
-        return new_elinks, new_etitles
+        return new_elinks, new_etitles, etexts

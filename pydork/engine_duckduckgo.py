@@ -212,7 +212,9 @@ class DuckDuckGo(CommonEngine):
                     d = {
                         "link": r_data["u"],
                         "title": BeautifulSoup(
-                            r_data["t"], "lxml").text
+                            r_data["t"], "lxml").text,
+                        "text": BeautifulSoup(
+                            r_data["a"], "lxml").text
                     }
                     links.append(d)
 

@@ -173,6 +173,7 @@ class Yahoo(CommonEngine):
             if self.USE_SPLASH or self.USE_SELENIUM:
                 self.SOUP_SELECT_JSON = '#__NEXT_DATA__'
                 self.SOUP_SELECT_IMAGE = '.rg_meta.notranslate'
+                self.SOUP_SELECT_TEXT = ''
 
                 # Yahooの場合、jsonから検索結果を取得する
                 soup = BeautifulSoup(html, 'lxml')
@@ -198,12 +199,14 @@ class Yahoo(CommonEngine):
 
                 elinks = [e['url'] for e in jd]
                 etitles = [e['title'] for e in jd]
+                etexts = [e['description'] for e in jd]
 
-                links = self.create_text_links(elinks, etitles)
+                links = self.create_text_links(elinks, etitles, etexts)
 
             else:
-                self.SOUP_SELECT_URL = '.sw-Card__title > a'
-                self.SOUP_SELECT_TITLE = '.sw-Card__title > a > h3'
+                self.SOUP_SELECT_URL = '.sw-Card__headerSpace > .sw-Card__title > a'
+                self.SOUP_SELECT_TITLE = '.sw-Card__headerSpace > .sw-Card__title > a > h3'
+                self.SOUP_SELECT_TEXT = '.sw-Card__floatContainer > .sw-Card__summary'
 
                 # CommonEngineの処理を呼び出す
                 links = super().get_links(html, type)
