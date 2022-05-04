@@ -48,7 +48,6 @@ class SearchEngineTestCase(unittest.TestCase):
         # user agentを定義
         self.search_engine.set_user_agent()
 
-
     # ==========
     # Baidu
     # ==========

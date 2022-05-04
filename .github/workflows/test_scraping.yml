@@ -71,7 +71,7 @@ jobs:
         run: python -V
 
       - name: Install Selenium
-        run: pip install get-chrome-driver --upgrade
+        run: pip install get-chrome-driver selenium-firefox --upgrade
 
       - name: Install Sphinx
         run: pip install sphinx sphinx-rtd-theme sphinx-autobuild
