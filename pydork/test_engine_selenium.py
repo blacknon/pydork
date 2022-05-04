@@ -39,9 +39,6 @@ class SearchEngineTestCaseWithSelenium(unittest.TestCase):
         print("tearDown!!")
 
     def common_settings(self):
-        # user agentを定義
-        self.search_engine.set_user_agent()
-
         # command modeを有効化
         self.search_engine.set_is_command(True)
 
@@ -50,6 +47,9 @@ class SearchEngineTestCaseWithSelenium(unittest.TestCase):
 
         # seleniumを有効化
         self.search_engine.set_selenium(None, 'chrome')
+
+        # user agentを定義
+        self.search_engine.set_user_agent()
 
     # ==========
     # Baidu
