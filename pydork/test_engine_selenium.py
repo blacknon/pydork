@@ -16,7 +16,7 @@ import unittest
 from .engine import SearchEngine
 
 # 変数
-SEARCH_TEXT = 'Legend of Zelda'
+SEARCH_TEXT = 'Linux'
 
 
 class SearchEngineTestCaseWithSelenium(unittest.TestCase):
