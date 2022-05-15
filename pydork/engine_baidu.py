@@ -297,7 +297,7 @@ class Baidu(CommonEngine):
 
 
 async def resolv_links(loop: asyncio.AbstractEventLoop, session: requests.Session, links: list):
-    """[summary]
+    """resolv_links
 
     リダイレクト先のurlをパラレルで取得する(Baiduで使用)
 
@@ -307,7 +307,7 @@ async def resolv_links(loop: asyncio.AbstractEventLoop, session: requests.Sessio
         links (list): リダイレクト先を取得するurlのリスト
 
     Returns:
-        data (ｌist): リダイレクト先を取得したurlのリスト
+        data (list): リダイレクト先を取得したurlのリスト
     """
 
     async def req(session: requests.Session, url: str):
@@ -326,7 +326,9 @@ async def resolv_links(loop: asyncio.AbstractEventLoop, session: requests.Sessio
 
 def resolv_url(session: requests.Session, url: str):
     """resolv_url
+
     リダイレクト先のurlを取得する(Baiduで使用)
+
     Args:
         session (request.Session): リダイレクト先を取得する際に使用するSession
         url (str): リダイレクト先を取得するurl
