@@ -7,9 +7,10 @@
     * Bing用の検索用Classを持つモジュール.
 """
 
-
+import requests
 import datetime
 import json
+import asyncio
 import re
 
 from urllib import parse
@@ -224,6 +225,7 @@ class Bing(CommonEngine):
         """processings_elist
 
         self.get_links 内で、取得直後のelinks, etitlesに加工を加えるための関数.
+        requestsを用いて、リダイレクトリンクから遷移先urlを取得していく.
 
         Args:
             elinks (list): elinks(検索結果のlink)の配列
@@ -235,18 +237,103 @@ class Bing(CommonEngine):
             etitles (list): etitles(検索結果のtitle)の配列
             etexts (list): etexts(検索結果のtext)の配列
         """
-        new_elinks = list()
-        new_etitles = list()
 
-        # `https://rd.listing.yahoo.co.jp/`を除外する
-        yahoo_match = re.compile(r'^https://rd\.listing\.yahoo\.co\.jp/')
+        # 通常のスクレイピングとは別にセッションを作成
+        session = requests.session()
 
-        n = 0
-        for link in elinks:
-            if link[0] != '/' and not yahoo_match.match(link):
-                new_elinks.append(link)
-                if len(etitles) > n:
-                    new_etitles.append(etitles[n])
-            n += 1
+        # pool sizeを調整
+        adapter = requests.adapters.HTTPAdapter(
+            pool_connections=100, pool_maxsize=100)
+        session.mount('https://', adapter)
 
-        return new_elinks, new_etitles, etexts
+        # proxyを設定
+        if self.PROXY != '':
+            proxies = {
+                'http': self.PROXY,
+                'https': self.PROXY
+            }
+            session.proxies = proxies
+
+        # user-agentを設定
+        if self.USER_AGENT != '':
+            session.headers.update(
+                {
+                    'User-Agent': self.USER_AGENT,
+                    'Accept-Language': 'ja,en-US;q=0.7,en;q=0.3'
+                }
+            )
+
+        # asyncio loopを作成
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
+
+        # リダイレクト先のurlに置き換え
+        elinks = loop.run_until_complete(
+            resolv_links(loop, session, elinks))
+        loop.close()
+
+        return elinks, etitles, etexts
+
+
+async def resolv_links(loop: asyncio.AbstractEventLoop, session: requests.Session, links: list):
+    """resolv_links
+
+    リダイレクト先のurlをパラレルで取得する(Baiduで使用)
+
+    Args:
+        loop (asyncio.AbstractEventLoop): loop
+        session (requests.Session): 使用するSession
+        links (list): リダイレクト先を取得するurlのリスト
+
+    Returns:
+        data (list): リダイレクト先を取得したurlのリスト
+    """
+
+    async def req(session: requests.Session, url: str):
+        task = await loop.run_in_executor(None, resolv_url, session, url)
+        return task
+
+    tasks = []
+    for link in links:
+        # urlをパース
+        url = parse.urlparse(link)
+
+        # bingの遷移ページの場合はリダイレクトして処理
+        if url.netloc == 'www.bing.com' and url.path == '/ck/a':
+            task = req(session, link)
+            tasks.append(task)
+
+    data = await asyncio.gather(*tasks)
+
+    return data
+
+
+def resolv_url(session: requests.Session, url: str):
+    """resolv_url
+    リダイレクト先のurlを取得する(Baiduで使用)
+    Args:
+        session (request.Session): リダイレクト先を取得する際に使用するSession
+        url (str): リダイレクト先を取得するurl
+    Returns:
+        url (str): リダイレクト先のurl
+    """
+
+    while True:
+        try:
+            # リダイレクト先のbodyを取得する
+            res = session.get(url).text
+
+        except requests.RequestException:
+            continue
+        except ConnectionError:
+            continue
+        else:
+            # resから１行ずつチェック
+            for line in res.splitlines():
+                if re.match('^ +var u', line):
+                    text = re.findall('"([^"]*)"', line)
+                    url = text[0]
+                    break
+            break
+
+    return url
