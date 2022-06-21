@@ -296,7 +296,11 @@ class CommonEngine:
 
         # browserに応じてdriverを作成していく
         if self.SELENIUM_BROWSER == 'chrome':
-            chromedriver_autoinstaller.install()
+            try:
+                chromedriver_autoinstaller.install()
+            except Exception:
+                pass
+
             self.driver = Chrome(options=options)
 
         elif self.SELENIUM_BROWSER == 'firefox':
@@ -310,7 +314,10 @@ class CommonEngine:
             # capabilities = webdriver.DesiredCapabilities().FIREFOX
             # capabilities['acceptSslCerts'] = True
 
-            geckodriver_autoinstaller.install()
+            try:
+                geckodriver_autoinstaller.install()
+            except Exception:
+                pass
             self.driver = Firefox(options=options, firefox_profile=profile)
 
         # NOTE:

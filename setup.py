@@ -7,8 +7,6 @@ import os
 import platform
 
 import setuptools
-# import sphinx.ext.apidoc
-# from sphinx.setup_command import BuildDoc
 
 cmdclass = {}
 try:
