@@ -291,8 +291,6 @@ class CommonEngine:
         # proxyを追加
         if self.PROXY != '':
             options.add_argument('--proxy-server=%s' % self.PROXY)
-            # debug: 投げてるリクエストの調査のため
-            # options.add_argument('--proxy-server=%s' % 'http://localhost:8080')
 
         # browserに応じてdriverを作成していく
         if self.SELENIUM_BROWSER == 'chrome':
@@ -309,10 +307,6 @@ class CommonEngine:
             profile.set_preference('devtools.jsonview.enabled', False)
             profile.set_preference('plain_text.wrap_long_lines', False)
             profile.set_preference('view_source.wrap_long_lines', False)
-
-            # debug comment out.
-            # capabilities = webdriver.DesiredCapabilities().FIREFOX
-            # capabilities['acceptSslCerts'] = True
 
             try:
                 geckodriver_autoinstaller.install()

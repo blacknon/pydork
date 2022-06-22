@@ -46,6 +46,20 @@ def main():
             "help": "検索文字列(クエリ)が書かれているファイル",
         },
         {
+            "args": ["-F", "--template_file"],
+            "action": "store",
+            "type": str,
+            "default": "",
+            "help": "検索文字列(クエリ)が書かれているテンプレートファイル(jinja2)",
+        },
+        {
+            "args": ["-V", "--template_variable"],
+            "action": "store",
+            "type": str,
+            "default": "",
+            "help": "テンプレートファイル(jinja2)で使用する変数セット(json)",
+        },
+        {
             "args": ["-t", "--search_type"],
             "default": ["google"],
             "choices": engines_list,
