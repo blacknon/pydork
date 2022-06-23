@@ -115,8 +115,6 @@ def run_subcommand(subcommand, args):
             # レンダリング処理を実行
             rendered_query_strings = tmpl.render(tmpl_params)
 
-            print(rendered_query_strings.splitlines())
-
             # templateを1行ずつqueryに追加
             template_file_querys = [s.strip()
                                     for s in rendered_query_strings.splitlines()]
