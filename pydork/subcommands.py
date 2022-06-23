@@ -174,6 +174,10 @@ def set_se_options(se, args):
     if 'debug' in args:
         se.set_is_debug(args.debug)
 
+    # set ssl verify
+    if 'insecure' in args:
+        se.set_ignore_ssl(args.insecure)
+
     # set is_command flag
     se.set_is_command(True)
 

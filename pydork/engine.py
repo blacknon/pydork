@@ -276,6 +276,17 @@ class SearchEngine:
 
         self.ENGINE.set_user_agent(useragent)
 
+    # sslの検証を無効化する
+    def set_ignore_ssl(self, verify: bool):
+        """set_ignore_ssl
+
+        Ignore ssl verify.
+
+        Args:
+            verify (bool): bool.
+        """
+        self.ENGINE.set_ignore_ssl = verify
+
     # 検索を行う
     def search(self, keyword: str, type='text', maximum=100):
         """search

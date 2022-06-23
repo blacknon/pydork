@@ -93,6 +93,11 @@ def main():
             "help": "json形式で出力する",
         },
         {
+            "args": ["-k", "--insecure"],
+            "action": "store_true",
+            "help": "sslエラーを無視する",
+        },
+        {
             "args": ["-s", "--selenium"],
             "action": "store_true",
             "help": "Selenium(headless browser)を使用する(排他: Splashより優先)",
