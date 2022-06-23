@@ -70,12 +70,6 @@ jobs:
       - name: Get Python version
         run: python -V
 
-      - name: Install Selenium
-        run: pip install get-chrome-driver geckodriver --upgrade
-
-      - name: Install Sphinx
-        run: pip install sphinx sphinx-rtd-theme sphinx-autobuild
-
       - name: Install dependencies
         run: pip install ./
 
