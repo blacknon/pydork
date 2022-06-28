@@ -59,6 +59,7 @@ class CommonEngine:
         self.IS_COMMAND = False
         self.IS_DISABLE_HEADLESS = False
         self.MESSAGE = False
+        self.IGNORE_SSL_VERIFY = False
 
         # ReCaptcha画面かどうかの識別用(初期値(ブランク))
         self.RECAPTCHA_SITEKEY = ''
@@ -183,6 +184,10 @@ class CommonEngine:
     def set_messages(self, message: Message):
         self.MESSAGE = message
 
+    # sslのチェックを無効にする
+    def set_ignore_ssl(self, verify: bool):
+        self.IGNORE_SSL_VERIFY = verify
+
     # cookieをcookiefileから取得する
     def read_cookies(self):
         """read_cookies
@@ -261,8 +266,13 @@ class CommonEngine:
             Options: 指定されたブラウザに応じたSeleniumのOptionsを返す.
         """
 
+        # browser別の処理
         if self.SELENIUM_BROWSER == 'chrome':
             options = ChromeOptions()
+
+            # set ssl verify
+            if not self.IGNORE_SSL_VERIFY:
+                options.add_argument('ignore-certificate-errors')
 
         elif self.SELENIUM_BROWSER == 'firefox':
             options = FirefoxOptions()
@@ -291,12 +301,14 @@ class CommonEngine:
         # proxyを追加
         if self.PROXY != '':
             options.add_argument('--proxy-server=%s' % self.PROXY)
-            # debug: 投げてるリクエストの調査のため
-            # options.add_argument('--proxy-server=%s' % 'http://localhost:8080')
 
         # browserに応じてdriverを作成していく
         if self.SELENIUM_BROWSER == 'chrome':
-            chromedriver_autoinstaller.install()
+            try:
+                chromedriver_autoinstaller.install()
+            except Exception:
+                pass
+
             self.driver = Chrome(options=options)
 
         elif self.SELENIUM_BROWSER == 'firefox':
@@ -306,11 +318,14 @@ class CommonEngine:
             profile.set_preference('plain_text.wrap_long_lines', False)
             profile.set_preference('view_source.wrap_long_lines', False)
 
-            # debug comment out.
-            # capabilities = webdriver.DesiredCapabilities().FIREFOX
-            # capabilities['acceptSslCerts'] = True
+            # set ssl verify(firefoxの場合はprofileで処理するのでこちらに記述する)
+            if not self.IGNORE_SSL_VERIFY:
+                profile.accept_untrusted_certs = True
 
-            geckodriver_autoinstaller.install()
+            try:
+                geckodriver_autoinstaller.install()
+            except Exception:
+                pass
             self.driver = Firefox(options=options, firefox_profile=profile)
 
         # NOTE:
@@ -527,9 +542,11 @@ class CommonEngine:
         # 優先度3: request.sessionからのリクエスト(SeleniumもSplashも有効でない場合)
         else:
             if method == 'GET':
-                result = self.session.get(url).text
+                result = self.session.get(
+                    url, verify=self.IGNORE_SSL_VERIFY).text
             elif method == 'POST':
-                result = self.session.post(url, data=data).text
+                result = self.session.post(
+                    url, verify=self.IGNORE_SSL_VERIFY, data=data).text
 
         return result
 

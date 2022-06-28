@@ -7,34 +7,13 @@ import os
 import platform
 
 import setuptools
-import sphinx.ext.apidoc
-from sphinx.setup_command import BuildDoc
 
-
-class BuildDocApiDoc(BuildDoc, object):
-    # inherit from object to enable 'super'
-    user_options = []
-    description = 'sphinx'
-
-    def run(self):
-        # metadata contains information supplied in setup()
-        metadata = self.distribution.metadata
-
-        # package_dir may be None, in that case use the current directory.
-        src_dir = (self.distribution.package_dir or {'': ''})['']
-        src_dir = os.path.join(os.getcwd(), src_dir, 'docs')
-        print(src_dir)
-
-        # Run sphinx by calling the main method, '--full' also adds a conf.py
-        cmd_line = ['-f', '-H', metadata.name, '-A', metadata.author,
-                    '-V', metadata.version, '-R', metadata.version, '-T',
-                    '-o', os.path.join('docs', '_build'), src_dir]
-
-        print(cmd_line)
-        sphinx.ext.apidoc.main(cmd_line)
-
-        super(BuildDocApiDoc, self).run()
-
+cmdclass = {}
+try:
+    from sphinx.setup_command import BuildDoc
+    cmdclass = {'build_sphinx': BuildDoc}
+except ImportError:
+    pass
 
 try:
     with open('README.rst') as f:
@@ -100,8 +79,8 @@ def get_data_files():
 
 
 name = 'pydork'
-version = '1.1.1'
-release = '1.1.1'
+version = '1.1.2'
+release = '1.1.2'
 
 if __name__ == "__main__":
     setuptools.setup(
@@ -116,6 +95,8 @@ if __name__ == "__main__":
         license='MIT License',
         install_requires=[
             'bs4',
+            'get-chrome-driver',
+            'get-gecko-driver',
             'chromedriver_autoinstaller',
             'geckodriver_autoinstaller',
             'fake_useragent',
@@ -124,7 +105,9 @@ if __name__ == "__main__":
             'selenium',
             'selenium_requests',
             'pickle-mixin',
-            'sphinx'
+            'sphinx',
+            'sphinx-rtd-theme',
+            'sphinx-autobuild'
         ],
         url='https://github.com/blacknon/pydork',
         packages=setuptools.find_packages(),
@@ -142,7 +125,7 @@ if __name__ == "__main__":
             'License :: OSI Approved :: MIT License',
         ],
         data_files=get_data_files(),
-        cmdclass={'build_sphinx': BuildDocApiDoc},
+        cmdclass=cmdclass,
         command_options={
             'build_sphinx': {
                 'project': ('setup.py', name),

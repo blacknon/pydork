@@ -11,6 +11,9 @@ import sys
 import threading
 import json
 import os
+import pathlib
+
+from jinja2 import Template
 
 from .engine import SearchEngine, ENGINES
 from .common import Color
@@ -26,8 +29,11 @@ def run_subcommand(subcommand, args):
         args (Namespace): argparseで取得した引数(Namespace).
     """
 
+    # template file用の変数セット(dict)
+    template_variable = {}
+
     # query及びfileがともに指定なしの場合、エラーにして返す
-    if args.query == "" and args.file == "":
+    if args.query == "" and args.file == "" and args.template_file == "":
         print("Error: クエリもしくはファイルを指定してください.")
         return
 
@@ -35,6 +41,22 @@ def run_subcommand(subcommand, args):
     if args.file != "":
         if not os.path.exists(args.file):
             print("Error: ファイルが存在しません.")
+            return
+
+    # args.fileのチェック
+    if args.template_file != "":
+        if not os.path.exists(args.template_file):
+            print("Error: ファイルが存在しません.")
+            return
+
+        if args.template_variable == "":
+            print("Error: テンプレート変数が指定されていません.")
+            return
+
+        try:
+            template_variable = json.loads(args.template_variable)
+        except Exception:
+            print("Error: テンプレート変数の形式がまちがっています.")
             return
 
     target = None
@@ -66,9 +88,37 @@ def run_subcommand(subcommand, args):
 
     # append query in file
     if args.file != "":
-        with open(args.file) as f:
+        # fileのfull pathを取得
+        file = pathlib.Path(args.file).expanduser()
+
+        # ファイルを開いて1行ずつqueryに追加する
+        with open(file) as f:
             file_querys = [s.strip() for s in f.readlines()]
             query_list.extend(file_querys)
+
+    # append query in template file
+    if args.template_file != "":
+        # template fileのfullpathを取得
+        template_file = pathlib.Path(args.template_file).expanduser()
+
+        # args.template_variableをjsonとして読み込む.
+
+        with open(template_file) as f:
+            template_data = f.read()
+
+            # template fileから値を取得
+            tmpl = Template(template_data)
+
+            # 設定情報を取得
+            tmpl_params = template_variable
+
+            # レンダリング処理を実行
+            rendered_query_strings = tmpl.render(tmpl_params)
+
+            # templateを1行ずつqueryに追加
+            template_file_querys = [s.strip()
+                                    for s in rendered_query_strings.splitlines()]
+            query_list.extend(template_file_querys)
 
     # engine_listへ、選択されているsearch engineを入れていく
     engine_list = []
@@ -121,6 +171,10 @@ def set_se_options(se, args):
     # set debug flag
     if 'debug' in args:
         se.set_is_debug(args.debug)
+
+    # set ssl verify
+    if 'insecure' in args:
+        se.set_ignore_ssl(args.insecure)
 
     # set is_command flag
     se.set_is_command(True)

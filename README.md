@@ -8,9 +8,21 @@ Scraping and listing text and image searches on Google, Bing, DuckDuckGo, Baidu,
 ## Install
 
 ```bash
-git clone https://github.com/blacknon/pydork
-cd pydork
-pip install ./
+pip install pydork
+```
+
+## Build
+
+### Documents
+
+```bash
+python setup.py build_sphinx
+```
+
+### Dockerimage
+
+```bash
+docker build -t "pydork" --progress=plain .
 ```
 
 ## How to use
