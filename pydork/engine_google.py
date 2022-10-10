@@ -204,7 +204,6 @@ class Google(CommonEngine):
             self.SOUP_SELECT_NEXT_URL = ''
 
             # Selenium経由、かつFirefoxを使っている場合
-            # if self.USE_SELENIUM and self.SELENIUM_BROWSER == 'firefox':
             if self.USE_SELENIUM:
                 self.SOUP_SELECT_URL = '.jGGQ5e > .yuRUbf > a'
                 self.SOUP_SELECT_TITLE = '.jGGQ5e > .yuRUbf > a > .LC20lb'
