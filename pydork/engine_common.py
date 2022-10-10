@@ -298,12 +298,12 @@ class CommonEngine:
         # optionsを取得する
         options = self.create_selenium_options()
 
-        # proxyを追加
-        if self.PROXY != '':
-            options.add_argument('--proxy-server=%s' % self.PROXY)
-
         # browserに応じてdriverを作成していく
         if self.SELENIUM_BROWSER == 'chrome':
+            # proxyを追加
+            if self.PROXY != '':
+                options.add_argument('--proxy-server=%s' % self.PROXY)
+
             try:
                 chromedriver_autoinstaller.install()
             except Exception:
@@ -317,6 +317,41 @@ class CommonEngine:
             profile.set_preference('devtools.jsonview.enabled', False)
             profile.set_preference('plain_text.wrap_long_lines', False)
             profile.set_preference('view_source.wrap_long_lines', False)
+
+            # proxyを追加
+            if self.PROXY != '':
+                # self.PROXYをパース処理する
+                parsed_uri = parse.urlparse(self.PROXY)
+
+                # socks5
+                if parsed_uri.scheme == "socks5":
+                    print(parsed_uri)  # debug
+                    # Proxy設定を追加
+                    profile.set_preference(
+                        'network.proxy.type', 1)
+                    profile.set_preference('network.proxy.socks_version', 5)
+                    profile.set_preference(
+                        'network.proxy.socks', parsed_uri.hostname)
+                    profile.set_preference(
+                        'network.proxy.socks_port', parsed_uri.port)
+                    profile.set_preference('network.proxy.no_proxies_on', '')
+                    profile.set_preference(
+                        'network.proxy.socks_remote_dns', True)
+                    profile.update_preferences()
+                elif parsed_uri.scheme == "socks4":
+                    print(parsed_uri)  # debug
+                    # Proxy設定を追加
+                    profile.set_preference(
+                        'network.proxy.type', 1)
+                    profile.set_preference('network.proxy.socks_version', 4)
+                    profile.set_preference(
+                        'network.proxy.socks', parsed_uri.hostname)
+                    profile.set_preference(
+                        'network.proxy.socks_port', parsed_uri.port)
+                    profile.set_preference('network.proxy.no_proxies_on', '')
+                    profile.set_preference(
+                        'network.proxy.socks_remote_dns', True)
+                    profile.update_preferences()
 
             # set ssl verify(firefoxの場合はprofileで処理するのでこちらに記述する)
             if not self.IGNORE_SSL_VERIFY:
