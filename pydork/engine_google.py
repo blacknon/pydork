@@ -15,6 +15,7 @@ from time import sleep
 from json.decoder import JSONDecodeError
 from urllib import parse
 from lxml import etree
+from bs4 import BeautifulSoup
 
 from .common import Color
 from .recaptcha import TwoCaptcha
@@ -45,6 +46,9 @@ class Google(CommonEngine):
         self.IMAGE_URL = 'https://www.google.com/_/VisualFrontendUi/data/batchexecute'
         self.SUGGEST_URL = 'http://www.google.com/complete/search'
 
+        # 次の検索ページのURL(`self.get_nextpage_url`の処理で取得する)
+        self.SEARCH_NEXT_URL = None
+
         # ReCaptcha画面かどうかの識別用
         self.SOUP_RECAPTCHA_TAG = '#captcha-form > #recaptcha'
 
@@ -71,7 +75,7 @@ class Google(CommonEngine):
             url_param = {
                 'q': keyword,   # 検索キーワード
                 'oq': keyword,  # 検索キーワード
-                'num': '100',   # 1ページごとの表示件数
+                'num': '100',   # 1ページごとの表示件数.
                 'filter': '0',  # 類似ページのフィルタリング(0...無効, 1...有効)
                 'start': '',    # 開始位置
                 'tbs': '',      # 期間
@@ -100,14 +104,19 @@ class Google(CommonEngine):
 
             page = 0
             while True:
-                # parameterにページを開始する番号を指定
-                url_param['start'] = str(page * 100)
-                params = parse.urlencode(url_param)
+                if page == 0:
+                    # parameterにページを開始する番号を指定
+                    url_param['start'] = str(page * 100)
+                    params = parse.urlencode(url_param)
 
-                target_url = search_url + '?' + params
+                    target_url = search_url + '?' + params
+
+                else:
+                    target_url = self.SEARCH_NEXT_URL
+                    if self.SEARCH_NEXT_URL is None:
+                        break
 
                 yield 'GET', target_url, None
-
                 page += 1
 
         elif type == 'image':
@@ -192,18 +201,24 @@ class Google(CommonEngine):
             self.SOUP_SELECT_URL = '#main > div > div > .kCrYT > a'
             self.SOUP_SELECT_TITLE = '#main > div > div > .kCrYT > a > h3 > div'
             self.SOUP_SELECT_TEXT = '#main > div > div > .kCrYT > div > div > div > div > div'
+            self.SOUP_SELECT_NEXT_URL = ''
 
             # Selenium経由、かつFirefoxを使っている場合
-            if self.USE_SELENIUM and self.SELENIUM_BROWSER == 'firefox':
-                self.SOUP_SELECT_URL = '.jtfYYd > div > .yuRUbf > a'
-                self.SOUP_SELECT_TITLE = '.jtfYYd > div > .yuRUbf > a > .LC20lb'
-                self.SOUP_SELECT_TEXT = '.jtfYYd > div > div'
+            if self.USE_SELENIUM:
+                self.SOUP_SELECT_URL = '.yuRUbf > a'
+                self.SOUP_SELECT_TITLE = '.yuRUbf > a > .LC20lb'
+                self.SOUP_SELECT_TEXT = '.WZ8Tjf'
+                self.SOUP_SELECT_NEXT_URL = '.d6cvqb > a'
 
             # Splash経由で通信している場合
             elif self.USE_SPLASH:
                 self.SOUP_SELECT_URL = '.yuRUbf > a'
                 self.SOUP_SELECT_TITLE = '.yuRUbf > a > .LC20lb'
-                self.SOUP_SELECT_TEXT = '.jtfYYd > div > div'
+                self.SOUP_SELECT_TEXT = '.WZ8Tjf'
+                self.SOUP_SELECT_NEXT_URL = '.d6cvqb > a'
+
+            # TODO: SEARCH_NEXT_URLを書き換える
+            self.get_nextpage_url(html)
 
             # CommonEngineの処理を呼び出す
             links = super().get_links(html, type)
@@ -214,7 +229,6 @@ class Google(CommonEngine):
 
         return links
 
-    # 画像検索ページの検索結果(links(list()))を生成するfunction
     def get_image_links(self, html: str):
         """get_image_links
 
@@ -289,6 +303,27 @@ class Google(CommonEngine):
         suggests[char if char == '' else char[-1]] = data
 
         return suggests
+
+    def get_nextpage_url(self, html: str):
+        # BeautifulSoupでの解析を実施
+        soup = BeautifulSoup(html, 'lxml')
+
+        # BeautifulSoupでnext urlの要素を確認する
+        elements = soup.select(self.SOUP_SELECT_NEXT_URL)
+
+        # next urlを取得する
+        elinks = [e['href'] for e in elements]
+
+        if len(elinks) == 0:
+            self.SEARCH_NEXT_URL = None
+
+        elif len(elinks) == 1:
+            next_url = parse.urljoin(self.ENGINE_TOP_URL, elinks[0])
+            self.SEARCH_NEXT_URL = next_url
+
+        elif len(elinks) > 1:
+            next_url = parse.urljoin(self.ENGINE_TOP_URL, elinks[1])
+            self.SEARCH_NEXT_URL = next_url
 
     def processings_elist(self, elinks, etitles, etexts: list):
         """processings_elist
