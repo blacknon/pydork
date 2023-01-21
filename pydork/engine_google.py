@@ -325,9 +325,6 @@ class Google(CommonEngine):
             next_url = parse.urljoin(self.ENGINE_TOP_URL, elinks[1])
             self.SEARCH_NEXT_URL = next_url
 
-        # debug
-        print(self.SEARCH_NEXT_URL)
-
     def processings_elist(self, elinks, etitles, etexts: list):
         """processings_elist
 

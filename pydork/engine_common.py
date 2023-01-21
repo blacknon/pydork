@@ -325,7 +325,6 @@ class CommonEngine:
 
                 # socks5
                 if parsed_uri.scheme == "socks5":
-                    print(parsed_uri)  # debug
                     # Proxy設定を追加
                     profile.set_preference(
                         'network.proxy.type', 1)
@@ -339,7 +338,6 @@ class CommonEngine:
                         'network.proxy.socks_remote_dns', True)
                     profile.update_preferences()
                 elif parsed_uri.scheme == "socks4":
-                    print(parsed_uri)  # debug
                     # Proxy設定を追加
                     profile.set_preference(
                         'network.proxy.type', 1)
