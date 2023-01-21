@@ -47,7 +47,7 @@ class Google(CommonEngine):
         self.SUGGEST_URL = 'http://www.google.com/complete/search'
 
         # 次の検索ページのURL(`self.get_nextpage_url`の処理で取得する)
-        self.SEARCH_NEXT_URL = ''
+        self.SEARCH_NEXT_URL = None
 
         # ReCaptcha画面かどうかの識別用
         self.SOUP_RECAPTCHA_TAG = '#captcha-form > #recaptcha'
@@ -75,7 +75,7 @@ class Google(CommonEngine):
             url_param = {
                 'q': keyword,   # 検索キーワード
                 'oq': keyword,  # 検索キーワード
-                'num': '50',   # 1ページごとの表示件数. NOTE: 100 => 50に変更
+                'num': '100',   # 1ページごとの表示件数.
                 'filter': '0',  # 類似ページのフィルタリング(0...無効, 1...有効)
                 'start': '',    # 開始位置
                 'tbs': '',      # 期間
@@ -205,23 +205,23 @@ class Google(CommonEngine):
 
             # Selenium経由、かつFirefoxを使っている場合
             if self.USE_SELENIUM:
-                self.SOUP_SELECT_URL = '.jGGQ5e > .yuRUbf > a'
-                self.SOUP_SELECT_TITLE = '.jGGQ5e > .yuRUbf > a > .LC20lb'
+                self.SOUP_SELECT_URL = '.yuRUbf > a'
+                self.SOUP_SELECT_TITLE = '.yuRUbf > a > .LC20lb'
                 self.SOUP_SELECT_TEXT = '.WZ8Tjf'
-                self.SOUP_SELECT_NEXT_URL = '.BBwThe > a'
+                self.SOUP_SELECT_NEXT_URL = '.d6cvqb > a'
 
             # Splash経由で通信している場合
             elif self.USE_SPLASH:
-                self.SOUP_SELECT_URL = '.jGGQ5e > .yuRUbf > a'
-                self.SOUP_SELECT_TITLE = '.jGGQ5e > .yuRUbf > a > .LC20lb'
+                self.SOUP_SELECT_URL = '.yuRUbf > a'
+                self.SOUP_SELECT_TITLE = '.yuRUbf > a > .LC20lb'
                 self.SOUP_SELECT_TEXT = '.WZ8Tjf'
-                self.SOUP_SELECT_NEXT_URL = '.BBwThe > a'
+                self.SOUP_SELECT_NEXT_URL = '.d6cvqb > a'
+
+            # TODO: SEARCH_NEXT_URLを書き換える
+            self.get_nextpage_url(html)
 
             # CommonEngineの処理を呼び出す
             links = super().get_links(html, type)
-
-            # TODO: SEARCH_URLを書き換える
-            self.get_nextpage_url(html)
 
         # イメージ検索の場合
         elif type == 'image':
@@ -229,7 +229,6 @@ class Google(CommonEngine):
 
         return links
 
-    # 画像検索ページの検索結果(links(list()))を生成するfunction
     def get_image_links(self, html: str):
         """get_image_links
 
@@ -326,6 +325,7 @@ class Google(CommonEngine):
             next_url = parse.urljoin(self.ENGINE_TOP_URL, elinks[1])
             self.SEARCH_NEXT_URL = next_url
 
+        # debug
         print(self.SEARCH_NEXT_URL)
 
     def processings_elist(self, elinks, etitles, etexts: list):

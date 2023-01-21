@@ -441,7 +441,11 @@ class SearchEngine:
                 )
 
                 # loopを抜ける
-                break
+                if self.ENGINE.NAME == "Google":
+                    if self.ENGINE.SEARCH_NEXT_URL is None:
+                        break
+                else:
+                    break
 
             # maximumで指定した件数を超える場合、その件数までを追加してloopを抜ける
             elif len(links) > maximum - total:
