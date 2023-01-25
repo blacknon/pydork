@@ -207,14 +207,14 @@ class Google(CommonEngine):
             if self.USE_SELENIUM:
                 self.SOUP_SELECT_URL = '.yuRUbf > a'
                 self.SOUP_SELECT_TITLE = '.yuRUbf > a > .LC20lb'
-                self.SOUP_SELECT_TEXT = '.WZ8Tjf'
+                self.SOUP_SELECT_TEXT = '.lEBKkf'
                 self.SOUP_SELECT_NEXT_URL = '.d6cvqb > a'
 
             # Splash経由で通信している場合
             elif self.USE_SPLASH:
                 self.SOUP_SELECT_URL = '.yuRUbf > a'
                 self.SOUP_SELECT_TITLE = '.yuRUbf > a > .LC20lb'
-                self.SOUP_SELECT_TEXT = '.WZ8Tjf'
+                self.SOUP_SELECT_TEXT = '.lEBKkf'
                 self.SOUP_SELECT_NEXT_URL = '.d6cvqb > a'
 
             # TODO: SEARCH_NEXT_URLを書き換える
