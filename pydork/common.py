@@ -156,6 +156,17 @@ class Message:
         return result
 
     def print_line(self, *text, use_header=True, separator=' ', file=sys.stdout, header=None):
+        """print_line
+
+        メッセージを出力する(行)
+
+        Args:
+            text: メッセージとして出力するテキスト行
+            use_header: `header`で指定しているヘッダーを行頭に表示するかどうか
+            separator: printする際に使用する区切り文字
+            file: 出力先のファイル(デフォルトはstdout)
+            header: ヘッダーとして使用する文字列を指定
+        """
         # headerの生成
         if header is None:
             header = self.HEADER
@@ -169,6 +180,18 @@ class Message:
             print(*text, sep=separator, file=file)
 
     def print_text(self, text, mode='message', use_header=True, separator=' ', file=sys.stdout, header=None):
+        """print_line
+
+        メッセージを出力する(テキスト)
+
+        Args:
+            text: メッセージとして出力するテキスト
+            mode: メッセージの出力モード(`message`, `error`, `warn`, `info`, `debug`)
+            use_header: `header`で指定しているヘッダーを行頭に表示するかどうか
+            separator: printする際に使用する区切り文字
+            file: 出力先のファイル(デフォルトはstdout)
+            header: ヘッダーとして使用する文字列を指定
+        """
         # is_commandが有効のときのみ出力させる
         if not self.IS_COMMAND:
             return
@@ -224,6 +247,12 @@ class Message:
 def set_counter(links: list):
     """set_counter
 
+    links(list)の要素に`num`キーを追加し、連続した数値を入れていく
+
+    Args:
+        links(list): リンクのリスト. ex) [{'link', 'http://...', 'title': 'hogehoge...'}, {'link': '...', 'title': '...'}, ... ]
+    Returns:
+        result(list):  [{'link', 'http://...', 'title': 'hogehoge...', num: 1}, {'link': '...', 'title': '...', num: 2}, ... ]
     """
     # result(list)の生成
     result = list()
