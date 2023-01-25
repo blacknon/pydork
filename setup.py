@@ -79,8 +79,8 @@ def get_data_files():
 
 
 name = 'pydork'
-version = '1.1.3'
-release = '1.1.3'
+version = '1.1.4'
+release = '1.1.4'
 
 if __name__ == "__main__":
     setuptools.setup(

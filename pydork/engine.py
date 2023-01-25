@@ -20,6 +20,7 @@ from datetime import datetime
 
 from .common import Color
 from .common import Message
+from .common import set_counter
 from .engine_baidu import Baidu
 from .engine_bing import Bing
 from .engine_duckduckgo import DuckDuckGo
@@ -467,6 +468,9 @@ class SearchEngine:
 
             # 連続でアクセスすると問題があるため、3秒待機
             sleep(3)
+
+        # 検索番号を指定
+        result = set_counter(result)
 
         # commandの場合の出力処理
         self.ENGINE.MESSAGE.print_text(

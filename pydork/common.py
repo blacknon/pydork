@@ -218,3 +218,20 @@ class Message:
                             separator=separator, use_header=use_header, file=file, header=header)
 
         return
+
+
+# 渡されたリスト内のdictに`num`を追加する関数
+def set_counter(links: list):
+    """set_counter
+
+    """
+    # result(list)の生成
+    result = list()
+
+    num = 1
+    for d in links:
+        d["num"] = num
+        num += 1
+        result.append(d)
+
+    return result
