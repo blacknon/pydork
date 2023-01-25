@@ -260,7 +260,6 @@ def main():
 
     # image
     # ----------
-    # TODO: image検索をサブコマンドとして追加する
     parser_image = subparsers.add_parser(
         'image',
         help='search mode. see `search -h`'

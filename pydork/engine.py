@@ -2,6 +2,9 @@
 # -*- coding: utf-8 -*-
 # =======================================================
 
+
+# TODO: json出力時にヒット番号を付与する(SEO対策が行えているかどうかのチェック用)
+
 """engine
     * Module for performing searches with SearchEngine
 """
