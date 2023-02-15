@@ -5,6 +5,8 @@
 # that can be found in the LICENSE file.
 # =======================================================
 
+# TODO: 日本語のヘルプメッセージを英語に書き換えて、多言語対応できるように対処する。
+
 
 import argparse
 import copy
@@ -24,7 +26,7 @@ __version__ = get_distribution('pydork').version
 def main():
     # parserの作成
     parser = argparse.ArgumentParser(
-        description='各種検索エンジンから指定したクエリの結果(url)およびSuggestを取得するスクリプト')
+        description='各種検索エンジンから指定したクエリの結果(url)およびSuggestを取得する')
     subparsers = parser.add_subparsers()
 
     # ENGINESに`all`を追加
