@@ -13,8 +13,10 @@ RUN apt update
 # apt install
 RUN apt install -y \
     firefox-esr \
-    chrome \
     python3-pip
+
+RUN pip3 install --upgrade pip
+RUN pip3 install --upgrade pip setuptools
 
 # copy directory
 COPY ./ /opt/pydork
@@ -24,4 +26,4 @@ WORKDIR /opt/pydork
 RUN ls -la /opt/pydork
 
 # # pip install
-RUN pip3 install ./
+RUN pip3 install --use-pep517 ./
