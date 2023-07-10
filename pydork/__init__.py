@@ -5,17 +5,17 @@
 # that can be found in the LICENSE file.
 # =======================================================
 
-# TODO: 日本語のヘルプメッセージを英語に書き換えて、多言語対応できるように対処する。
-
-
-import argparse
-import copy
-
-from datetime import datetime
-from pkg_resources import get_distribution
-
+from .sub_commands import run_subcommand
 from .engine import ENGINES
-from .subcommands import run_subcommand
+
+from pkg_resources import get_distribution
+from datetime import datetime
+
+import copy
+import argparse
+
+# TODO: 日本語のヘルプメッセージを英語に書き換えて、多言語対応できるように対処する。
+# TODO: returnではなくyieldに切り替えて、返り値をgeneratorにすることである程度途中状態でも状況を見れるような仕組みとする
 
 
 # version (setup.pyから取得してくる)
@@ -137,6 +137,11 @@ def main():
             "default": "~/.pydork_cookies",
             "type": str,
             "help": "使用するcookieファイルの格納先ディレクトリのPATH(各検索エンジンごとでcookieファイルを個別保存)"
+        },
+        {
+            "args": ["--delete-cookies"],
+            "type": bool,
+            "help": "検索クエリ実行ごとにCookieを削除する"
         },
     ]
 

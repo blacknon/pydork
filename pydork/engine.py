@@ -21,8 +21,7 @@ from time import sleep
 from string import ascii_lowercase, digits
 from datetime import datetime
 
-from .common import Color
-from .common import Message
+from .common import Color, Message
 from .common import set_counter
 from .engine_baidu import Baidu
 from .engine_bing import Bing
@@ -207,6 +206,19 @@ class SearchEngine:
 
         # ENGINEのself変数にセットする
         self.ENGINE.COOKIE_FILE = cookie_file
+
+    # クエリ実行ごとにCookieを削除して作り直しさせるかを指定する関数
+    def set_cookie_files_delete(self, is_delete_cookie: bool):
+        """set_cookie_files_delete
+
+        Function that specifies whether the cookie should be deleted and recreated each time the query is executed.
+
+        Args:
+            is_delete_cookie (bool): delete flag.
+        """
+
+        # ENGINEのself変数にセットする
+        self.ENGINE.COOKIE_FILE_DELETE = is_delete_cookie
 
     # 検索エンジンにわたす言語・国の設定を受け付ける
     def set_lang(self, lang: str = "ja", locale: str = "JP"):
@@ -488,6 +500,10 @@ class SearchEngine:
         if self.ENGINE.COOKIE_FILE != '':
             self.ENGINE.write_cookies()
 
+        # delete cookie file
+        if self.ENGINE.COOKIE_FILE_DELETE:
+            os.remove(self.ENGINE.COOKIE_FILE)
+
         # sessionを終了
         self.ENGINE.close_session()
 
@@ -516,10 +532,10 @@ class SearchEngine:
         chars = ['', ' ']
 
         # japフラグが有効な場合、キーワードに日本語を含めてサジェストを検索
-        chars += [' ' + chr(i) for i in range(12353, 12436)] if jap else[]
+        chars += [' ' + chr(i) for i in range(12353, 12436)] if jap else []
 
         # alphフラグが有効な場合、キーワードにアルファベットを含めてサジェストを検索
-        chars += [' ' + char for char in ascii_lowercase] if alph else[]
+        chars += [' ' + char for char in ascii_lowercase] if alph else []
 
         # numフラグが有効な場合、キーワードに数字を含めてサジェストを検索
         chars += [' ' + char for char in digits] if num else []

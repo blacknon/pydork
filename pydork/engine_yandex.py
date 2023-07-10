@@ -8,3 +8,16 @@
 """engine_yandex
     * Yandex(yandex.com)用の検索用Classを持つモジュール.
 """
+
+from .common import Color
+from .engine_common import CommonEngine
+
+
+class Yandex(CommonEngine):
+    """DuckDuckGo
+
+    DuckDuckGo用の検索エンジン用Class.
+    """
+
+    def __init__(self):
+        None

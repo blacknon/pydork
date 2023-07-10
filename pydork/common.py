@@ -84,7 +84,7 @@ class Color:
 class Message:
     """Message
 
-    メッセージの出力を簡易化するためのClass(未完成...).
+    メッセージの出力を簡易化するためのClass.
 
     Examples:
 
@@ -208,6 +208,7 @@ class Message:
         text = self.replace(text)
 
         # case
+        text_color: Color = Color(Color.END)
         if mode == 'message':  # modeが `message` のとき
             text_color = Color(Color.WHITE)
 

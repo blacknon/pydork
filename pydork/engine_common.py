@@ -53,6 +53,7 @@ class CommonEngine:
         # 初期値の作成
         self.LOCK = None
         self.COOKIE_FILE = ''
+        self.COOKIE_FILE_DELETE = False
         self.SPLASH_URI = ''
         self.PROXY = ''
         self.USER_AGENT = ''
@@ -61,7 +62,7 @@ class CommonEngine:
         self.IS_DEBUG = False
         self.IS_COMMAND = False
         self.IS_DISABLE_HEADLESS = False
-        self.MESSAGE = False
+        self.MESSAGE: Message
         self.IGNORE_SSL_VERIFY = False
 
         # ReCaptcha画面かどうかの識別用(初期値(ブランク))
