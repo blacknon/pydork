@@ -7,6 +7,7 @@
 
 from .sub_commands import run_subcommand
 from .engine import ENGINES
+from . import messages
 
 from pkg_resources import get_distribution
 from datetime import datetime
@@ -14,7 +15,6 @@ from datetime import datetime
 import copy
 import argparse
 
-# TODO: 日本語のヘルプメッセージを英語に書き換えて、多言語対応できるように対処する。
 # TODO: returnではなくyieldに切り替えて、返り値をgeneratorにすることである程度途中状態でも状況を見れるような仕組みとする
 
 
@@ -26,7 +26,7 @@ __version__ = get_distribution('pydork').version
 def main():
     # parserの作成
     parser = argparse.ArgumentParser(
-        description='各種検索エンジンから指定したクエリの結果(url)およびSuggestを取得する')
+        description=messages.description)
     subparsers = parser.add_subparsers()
 
     # ENGINESに`all`を追加
@@ -41,28 +41,28 @@ def main():
             "type": str,
             "nargs": "?",
             "default": "",
-            "help": "検索文字列(クエリ)",
+            "help": messages.help_message_query,
         },
         {
             "args": ["-f", "--file"],
             "action": "store",
             "type": str,
             "default": "",
-            "help": "検索文字列(クエリ)が書かれているファイル",
+            "help": messages.help_message_op_file,
         },
         {
             "args": ["-F", "--template_file"],
             "action": "store",
             "type": str,
             "default": "",
-            "help": "検索文字列(クエリ)が書かれているテンプレートファイル(jinja2)",
+            "help": messages.help_message_op_template_file,
         },
         {
             "args": ["-V", "--template_variable"],
             "action": "store",
             "type": str,
             "default": "",
-            "help": "テンプレートファイル(jinja2)で使用する変数セット(json)",
+            "help": messages.help_message_op_template_variable,
         },
         {
             "args": ["-t", "--search_type"],
@@ -70,78 +70,78 @@ def main():
             "choices": engines_list,
             "nargs": "+",
             "type": str,
-            "help": "使用する検索エンジンを指定",
+            "help": messages.help_message_op_search_type,
         },
         {
             "args": ["-l", "--lang"],
             "default": "ja",
             "choices": ["ja", "en"],
             "type": str,
-            "help": "言語を指定",
+            "help": messages.help_message_op_lang,
         },
         {
             "args": ["-c", "--country"],
             "default": "JP",
             "choices": ["JP", "US"],
             "type": str,
-            "help": "国を指定",
+            "help": messages.help_message_op_country,
         },
         {
             "args": ["-P", "--proxy"],
             "default": "",
             "type": str,
-            "help": "プロキシサーバーを指定(例:socks5://hogehoge:8080, https://fugafuga:18080)",
+            "help": messages.help_message_op_proxy_server,
         },
         {
             "args": ["-j", "--json"],
             "action": "store_true",
-            "help": "json形式で出力する",
+            "help": messages.help_message_op_json,
         },
         {
             "args": ["-k", "--insecure"],
             "action": "store_true",
-            "help": "sslエラーを無視する",
+            "help": messages.help_message_op_insecure,
         },
         {
             "args": ["-s", "--selenium"],
             "action": "store_true",
-            "help": "Selenium(headless browser)を使用する(排他: Splashより優先)",
+            "help": messages.help_message_op_selenium,
         },
         {
             "args": ["-S", "--splash"],
             "action": "store_true",
-            "help": "Splash(headless browser)を使用する(排他: Seleniumの方が優先)",
+            "help": messages.help_message_op_splash,
         },
         {
             "args": ["-b", "--browser-endpoint"],
             "default": "",
             "type": str,
-            "help": "Selenium/Splash等のヘッドレスブラウザのエンドポイントを指定(例: localhost:8050)",
+            "help": messages.help_message_op_browser_endpoint,
         },
         {
             "args": ["-B", "--browser"],
             "default": "firefox",
             "choices": ["chrome", "firefox"],
             "type": str,
-            "help": "Seleniumで使用するBrowserを指定",
+            "help": messages.help_message_op_browser,
         },
         {
             "args": ["--color"],
             "default": "auto",
             "choices": ["auto", "none", "always"],
             "type": str,
-            "help": "color出力の切り替え"
+            "help": messages.help_message_op_color,
         },
         {
             "args": ["--cookies"],
             "default": "~/.pydork_cookies",
             "type": str,
-            "help": "使用するcookieファイルの格納先ディレクトリのPATH(各検索エンジンごとでcookieファイルを個別保存)"
+            "help": messages.help_message_op_cookies_dir,
         },
         {
             "args": ["--delete-cookies"],
             "type": bool,
-            "help": "検索クエリ実行ごとにCookieを削除する"
+            "help": messages.help_message_op_delete_cookies,
         },
     ]
 
@@ -150,38 +150,38 @@ def main():
         {
             "args": ["-T", "--title"],
             "action": "store_true",
-            "help": "検索結果のタイトルをセットで出力する",
+            "help": messages.help_message_op_title,
         },
         {
             "args": ["-0", "--nullchar"],
             "action": "store_true",
-            "help": "null characterを区切り文字として使用する",
+            "help": messages.help_message_op_null_char,
         },
         {
             "args": ["-n", "--num"],
             "default": 300,
             "type": int,
-            "help": "検索結果の取得数を指定する",
+            "help": messages.help_message_op_num,
         },
         {
             "args": ["--start"],
             "type": lambda s: datetime.strptime(s, '%Y-%m-%d'),
-            "help": "期間指定(開始)",
+            "help": messages.help_message_op_start,
         },
         {
             "args": ["--end"],
             "type": lambda s: datetime.strptime(s, '%Y-%m-%d'),
-            "help": "期間指定(終了)",
+            "help": messages.help_message_op_end,
         },
         {
             "args": ["--debug"],
             "action": "store_true",
-            "help": "debugモードを有効にする",
+            "help": messages.help_message_op_debug,
         },
         {
             "args": ["--disable-headless"],
             "action": "store_true",
-            "help": "Seleniumでheadlessモードを無効化する(手動でのReCaptcha対応時に必要)",
+            "help": messages.help_message_op_disable_headless,
         },
     ]
     search_args_map.extend(copy.deepcopy(common_args_map))
@@ -191,43 +191,43 @@ def main():
         {
             "args": ["-T", "--title"],
             "action": "store_true",
-            "help": "検索結果のタイトルをセットで出力する",
+            "help": messages.help_message_op_title,
         },
         {
             "args": ["-p", "--pagelink"],
             "action": "store_true",
-            "help": "画像ファイルがあるhtmlのURLも出力する",
+            "help": messages.help_message_op_image_pagelink,
         },
         {
             "args": ["-0", "--nullchar"],
             "action": "store_true",
-            "help": "null characterを区切り文字として使用する",
+            "help": messages.help_message_op_null_char,
         },
         {
             "args": ["-n", "--num"],
             "default": 300,
             "type": int,
-            "help": "検索結果の取得数を指定する",
+            "help": messages.help_message_op_num,
         },
         # {
         #     "args": ["--start"],
         #     "type": lambda s: datetime.strptime(s, '%Y-%m-%d'),
-        #     "help": "期間指定(開始)",
+        #     "help": messages.help_message_op_start,
         # },
         # {
         #     "args": ["--end"],
         #     "type": lambda s: datetime.strptime(s, '%Y-%m-%d'),
-        #     "help": "期間指定(終了)",
+        #     "help": messages.help_message_op_end,
         # },
         {
             "args": ["--debug"],
             "action": "store_true",
-            "help": "debugモードを有効にする",
+            "help": messages.help_message_op_debug,
         },
         {
             "args": ["--disable-headless"],
             "action": "store_true",
-            "help": "Seleniumでheadlessモードを無効化する(手動でのReCaptcha対応時に必要)",
+            "help": messages.help_message_op_disable_headless,
         },
     ]
     image_args_map.extend(copy.deepcopy(common_args_map))
@@ -237,17 +237,17 @@ def main():
         {
             "args": ["--jap"],
             "action": "store_true",
-            "help": "日本語の文字を検索キーワードに追加してサジェストを取得"
+            "help": messages.help_message_op_suggest_jap
         },
         {
             "args": ["--alph"],
             "action": "store_true",
-            "help": "アルファベット文字を検索キーワードに追加してサジェストを取得"
+            "help": messages.help_message_op_suggest_alph
         },
         {
             "args": ["--num"],
             "action": "store_true",
-            "help": "数字を検索キーワードに追加してサジェストを取得"
+            "help": messages.help_message_op_suggest_num
         },
     ]
     suggest_args_map.extend(copy.deepcopy(common_args_map))
