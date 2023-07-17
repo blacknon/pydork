@@ -98,7 +98,7 @@ class CommonEngine:
         self.RANGE_END = end
 
     # user_agentの設定値を受け付ける(引数がない場合はランダム。Seleniumの際は自動的に使用したbrowserのagentを指定)
-    def set_user_agent(self, user_agent: str = None, browser: str = None):
+    def set_user_agent(self, user_agent: str = None, browser: str = None):  # type: ignore
         """set_user_agent
 
         user_agentの値を受け付ける.
@@ -138,7 +138,7 @@ class CommonEngine:
     #   - splashより優先
     #   - host, browserは、指定がない場合はそれぞれデフォルト設定(hostは指定なし、browserはchrome)での動作
     #   - browserは `chrome` or `firefox` のみ受け付ける
-    def set_selenium(self, uri: str = None, browser: str = None):
+    def set_selenium(self, uri: str = None, browser: str = None):  # type: ignore
         """set_selenium
 
         検索時にSelenium経由で通信を行う.
@@ -200,6 +200,13 @@ class CommonEngine:
         現時点ではSeleniumでのみ動作.
         """
 
+        # cookieファイルが存在しない場合、空ファイルで作成する
+        exist_cookie_file = os.path.isfile(self.COOKIE_FILE)
+        if not exist_cookie_file:
+            cookie_file = open(self.COOKIE_FILE, 'w')
+            cookie_file.write('')
+            cookie_file.close()
+
         # cookieファイルのサイズを取得
         file_size = os.path.getsize(self.COOKIE_FILE)
 
@@ -211,7 +218,7 @@ class CommonEngine:
             # seleniumを使う場合
             if self.USE_SELENIUM:
                 # 事前アクセスが必要になるため、検索対象ドメインのTOPページにアクセスしておく
-                self.driver.get(self.ENGINE_TOP_URL)
+                self.driver.get(self.ENGINE_TOP_URL)  # type: ignore
 
                 # cookieを設定していく
                 for cookie in cookies:
@@ -397,7 +404,7 @@ class CommonEngine:
                 EC.presence_of_all_elements_located)
 
             # wait 5 seconds(wait DOM)
-            if self.NAME in ('Bing', 'Baidu', 'DuckDuckGo'):
+            if self.NAME in ('Bing', 'Baidu', 'DuckDuckGo'):  # type: ignore
                 self.driver.implicitly_wait(20)
 
             # get result
@@ -411,7 +418,7 @@ class CommonEngine:
                 EC.presence_of_all_elements_located)
 
             # wait 5 seconds(wait DOM)
-            if self.NAME in ('Bing', 'Baidu', 'DuckDuckGo'):
+            if self.NAME in ('Bing', 'Baidu', 'DuckDuckGo'):  # type: ignore
                 self.driver.implicitly_wait(20)
 
             # get result
@@ -452,7 +459,7 @@ class CommonEngine:
 
         # NOTE: Googleの画像検索のPOSTがSplashではレンダリングできないので、特例対応でrequestsを使用する.
         # TODO: Splashでもレンダリングできるようになったら書き換える.
-        elif method == 'POST' and self.NAME == 'Google' and self.IMAGE_URL in url:
+        elif method == 'POST' and self.NAME == 'Google' and self.IMAGE_URL in url:  # type: ignore
             # create session
             session = requests.session()
 
@@ -478,7 +485,7 @@ class CommonEngine:
         elif method == 'POST':
             headers = {'Content-Type': 'application/json'}
             params['http_method'] = 'POST'
-            params['body'] = parse.urlencode(data)
+            params['body'] = parse.urlencode(data)  # type: ignore
 
             result = self.session.post(
                 splash_url,
@@ -631,7 +638,7 @@ class CommonEngine:
 
             # before processing elists
             self.MESSAGE.print_text(
-                ','.join(elinks),
+                ','.join(elinks),  # type: ignore
                 header=self.MESSAGE.HEADER + ': ' + Color.BLUE +
                 '[BeforeProcessing elinks]' + Color.END,
                 separator=" :",
@@ -653,7 +660,7 @@ class CommonEngine:
 
             # after processing elists
             self.MESSAGE.print_text(
-                ','.join(elinks),
+                ','.join(elinks),  # type: ignore
                 header=self.MESSAGE.HEADER + ': ' +
                 Color.GREEN + '[AfterProcessing elinks]' + Color.END,
                 separator=" :",

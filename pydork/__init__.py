@@ -140,7 +140,7 @@ def main():
         },
         {
             "args": ["--delete-cookies"],
-            "type": bool,
+            "action": "store_true",
             "help": messages.help_message_op_delete_cookies,
         },
     ]

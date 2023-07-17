@@ -113,7 +113,7 @@ class SearchEngine:
             debug (bool): debug flag(Enable debug with `True`).
         """
 
-        self.ENGINE.IS_DEBUG = is_debug
+        self.ENGINE.IS_DEBUG = is_debug  # type: ignore
 
     # commandフラグ(コマンドモードでの実行)を有効化する関数
     def set_is_command(self, is_command: bool):
@@ -125,7 +125,7 @@ class SearchEngine:
         Args:
             is_command (bool): command flag(Enable command mode with `True`).
         """
-        self.ENGINE.IS_COMMAND = is_command
+        self.ENGINE.IS_COMMAND = is_command  # type: ignore
 
     # color出力が有効か否か
     def set_is_color(self, is_color: bool = False):
@@ -163,7 +163,7 @@ class SearchEngine:
 
         """
 
-        self.ENGINE.IS_DISABLE_HEADLESS = disable_headless
+        self.ENGINE.IS_DISABLE_HEADLESS = disable_headless  # type: ignore
 
     # cookieファイルを入れているディレクトリを渡して、使用するcookieファイルを取得する関数
     def set_cookie_files(self, cookie_dir: str):
@@ -177,8 +177,8 @@ class SearchEngine:
         """
 
         # フルパスに変換
-        cookie_dir = pathlib.Path(cookie_dir).expanduser()
-        cookie_dir = pathlib.Path(cookie_dir).resolve()
+        cookie_dir = pathlib.Path(cookie_dir).expanduser()  # type: ignore
+        cookie_dir = pathlib.Path(cookie_dir).resolve()  # type: ignore
 
         # 存在チェックをして、ディレクトリがない場合は新規作成
         if not os.path.exists(cookie_dir):
@@ -205,7 +205,7 @@ class SearchEngine:
             open(cookie_file, 'a').close()
 
         # ENGINEのself変数にセットする
-        self.ENGINE.COOKIE_FILE = cookie_file
+        self.ENGINE.COOKIE_FILE = cookie_file  # type: ignore
 
     # クエリ実行ごとにCookieを削除して作り直しさせるかを指定する関数
     def set_cookie_files_delete(self, is_delete_cookie: bool):
@@ -218,7 +218,7 @@ class SearchEngine:
         """
 
         # ENGINEのself変数にセットする
-        self.ENGINE.COOKIE_FILE_DELETE = is_delete_cookie
+        self.ENGINE.COOKIE_FILE_DELETE = is_delete_cookie  # type: ignore
 
     # 検索エンジンにわたす言語・国の設定を受け付ける
     def set_lang(self, lang: str = "ja", locale: str = "JP"):
@@ -257,7 +257,7 @@ class SearchEngine:
         self.ENGINE.set_proxy(proxy)
 
     # seleniumを有効にする
-    def set_selenium(self, uri: str = None, browser: str = None):
+    def set_selenium(self, uri: str = None, browser: str = None):  # type: ignore
         """set_selenium
 
         Use Selenium (priority over Splash).
@@ -282,7 +282,7 @@ class SearchEngine:
         self.ENGINE.set_splash(splash_url)
 
     # user_agentの設定値を受け付ける
-    def set_user_agent(self, useragent: str = None):
+    def set_user_agent(self, useragent: str = None):  # type: ignore
         """set_user_agent
 
         Specify the UserAgent.
@@ -304,7 +304,7 @@ class SearchEngine:
         Args:
             verify (bool): bool.
         """
-        self.ENGINE.set_ignore_ssl = verify
+        self.ENGINE.set_ignore_ssl = verify  # type: ignore
 
     # 検索を行う
     def search(self, keyword: str, search_type='text', maximum=100):
@@ -384,7 +384,8 @@ class SearchEngine:
             )
 
             # 検索結果の取得
-            html = self.ENGINE.get_result(url, method=method, data=data)
+            html = self.ENGINE.get_result(
+                url, method=method, data=data)  # type: ignore
 
             # debug
             self.ENGINE.MESSAGE.print_text(
@@ -394,6 +395,9 @@ class SearchEngine:
                 header=self.ENGINE.MESSAGE.HEADER + ': ' +
                 Color.GRAY + '[DEBUG]: [Response]' + Color.END
             )
+
+            # 初期値
+            is_recaptcha = False
 
             while True:
                 # ReCaptchaページかどうかを識別
@@ -414,7 +418,8 @@ class SearchEngine:
                     # headless browserを使っている場合
                     if self.ENGINE.USE_SELENIUM or self.ENGINE.USE_SPLASH:
                         # byass用の関数にわたす
-                        html = self.ENGINE.bypass_recaptcha(url, html)
+                        html = self.ENGINE.bypass_recaptcha(
+                            url, html)  # type: ignore
 
                         if html is not None:
                             # debug
@@ -447,7 +452,8 @@ class SearchEngine:
 
             # TODO: resultも関数に渡して重複チェックを行わせる
             # 検索結果をパースしてurlリストを取得する
-            links = self.ENGINE.get_links(url, html, search_type)
+            links = self.ENGINE.get_links(
+                url, html, search_type)  # type: ignore
 
             # linksの件数に応じて処理を実施
             if not len(links):
@@ -461,7 +467,7 @@ class SearchEngine:
 
                 # loopを抜ける
                 if self.ENGINE.NAME == "Google":
-                    if self.ENGINE.SEARCH_NEXT_URL is None:
+                    if self.ENGINE.SEARCH_NEXT_URL is None:  # type: ignore
                         break
                 else:
                     break
@@ -548,7 +554,8 @@ class SearchEngine:
             html = self.ENGINE.get_result(url)
 
             # TODO: 各エンジンでjson/textの変換処理を別途実装する必要がある
-            suggests = self.ENGINE.get_suggest_list(suggests, char, html)
+            suggests = self.ENGINE.get_suggest_list(
+                suggests, char, html)  # type: ignore
 
             sleep(0.5)
 

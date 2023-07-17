@@ -304,7 +304,7 @@ class Google(CommonEngine):
         sug_data = sug_root.xpath("//suggestion")
         data = [s.get("data") for s in sug_data]
 
-        suggests[char if char == '' else char[-1]] = data
+        suggests[char if char == '' else char[-1]] = data  # type: ignore
 
         return suggests
 
@@ -322,11 +322,13 @@ class Google(CommonEngine):
             self.SEARCH_NEXT_URL = None
 
         elif len(elinks) == 1:
-            next_url = parse.urljoin(self.ENGINE_TOP_URL, elinks[0])
+            next_url = parse.urljoin(
+                self.ENGINE_TOP_URL, elinks[0])  # type: ignore
             self.SEARCH_NEXT_URL = next_url
 
         elif len(elinks) > 1:
-            next_url = parse.urljoin(self.ENGINE_TOP_URL, elinks[1])
+            next_url = parse.urljoin(
+                self.ENGINE_TOP_URL, elinks[1])  # type: ignore
             self.SEARCH_NEXT_URL = next_url
 
     def processings_elist(self, elinks, etitles, etexts: list):

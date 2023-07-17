@@ -188,10 +188,11 @@ class Yahoo(CommonEngine):
                 if self.IS_DEBUG:
                     print(Color.PURPLE + '[JsonElement]' + Color.END,
                           file=sys.stderr)
-                    print(Color.PURPLE + element + Color.END, file=sys.stderr)
+                    print(Color.PURPLE + element + Color.END,
+                          file=sys.stderr)  # type: ignore
 
                 # jsonからデータを抽出　
-                j = json.loads(element)
+                j = json.loads(element)  # type: ignore
 
                 # debug
                 if self.IS_DEBUG:
@@ -272,7 +273,7 @@ class Yahoo(CommonEngine):
             soup = BeautifulSoup(html, features="lxml")
             html = soup.find("pre").text
         data = json.loads(html)
-        suggests[char if char == '' else char[-1]] = [e['key']
+        suggests[char if char == '' else char[-1]] = [e['key']  # type: ignore
                                                       for e in data['gossip']['results']]
 
         return suggests
