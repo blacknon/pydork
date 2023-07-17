@@ -344,7 +344,7 @@ def run_search(engine: str, query_list: list, args, thread_result: dict, cmd=Fal
     for query in query_list:
         # 検索を実行
         result = se.search(
-            query, type=search_type,
+            query, search_type=search_type,
             maximum=args.num
         )
 

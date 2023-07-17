@@ -181,12 +181,13 @@ class DuckDuckGo(CommonEngine):
 
         return url
 
-    def get_links(self, html: str, type: str):
+    def get_links(self, source_url: str, html: str, type: str):
         """get_links
 
         受け付けたhtmlを解析し、検索結果をlistに加工して返す関数.
 
         Args:
+            url  (str): 解析する検索結果のurl.
             html (str): 解析する検索結果のhtml.
             type (str): 検索タイプ([text, image]).現時点ではtextのみ対応.
 
@@ -217,7 +218,8 @@ class DuckDuckGo(CommonEngine):
                         "title": BeautifulSoup(
                             r_data["t"], "lxml").text,
                         "text": BeautifulSoup(
-                            r_data["a"], "lxml").text
+                            r_data["a"], "lxml").text,
+                        "source_url": source_url,
                     }
                     links.append(d)
 

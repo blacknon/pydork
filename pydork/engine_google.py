@@ -185,17 +185,18 @@ class Google(CommonEngine):
 
         return url
 
-    def get_links(self, html: str, type: str):
+    def get_links(self, url: str, html: str, type: str):
         """get_links
 
         受け付けたhtmlを解析し、検索結果をlistに加工して返す関数.
 
         Args:
+            url  (str): 解析する検索結果のurl.
             html (str): 解析する検索結果のhtml.
             type (str): 検索タイプ([text, image]).現時点ではtextのみ対応.
 
         Returns:
-            list: 検索結果(`[{'title': 'title...', 'url': 'https://hogehoge....'}, {...}]`)
+            list: 検索結果。変数名はlinks。(`[{'title': 'title...', 'url': 'https://hogehoge....'}, {...}]`)
         """
 
         # テキスト検索の場合
@@ -224,7 +225,7 @@ class Google(CommonEngine):
             self.get_nextpage_url(html)
 
             # CommonEngineの処理を呼び出す
-            links = super().get_links(html, type)
+            links = super().get_links(url, html, type)
 
         # イメージ検索の場合
         elif type == 'image':

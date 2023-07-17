@@ -307,14 +307,14 @@ class SearchEngine:
         self.ENGINE.set_ignore_ssl = verify
 
     # 検索を行う
-    def search(self, keyword: str, type='text', maximum=100):
+    def search(self, keyword: str, search_type='text', maximum=100):
         """search
 
         Search with a search engine.
 
         Args:
             keyword (str): query.
-            type (str, optional): search type. text or image. Defaults to 'text'.
+            search_type (str, optional): search type. text or image. Defaults to 'text'.
             maximum (int, optional): Max count of searches. Defaults to 100.
 
         Returns:
@@ -342,7 +342,7 @@ class SearchEngine:
         colored_keyword = self.ENGINE.MESSAGE.ENGINE_COLOR.out(keyword)
         self.ENGINE.MESSAGE.print_text(
             "$ENGINE: {} Search: {}".format(
-                type.capitalize(), colored_keyword),
+                search_type.capitalize(), colored_keyword),
             use_header=False,
             file=sys.stderr
 
@@ -357,7 +357,7 @@ class SearchEngine:
         self.ENGINE.create_session()
 
         # 検索処理の開始
-        gen_url = self.ENGINE.gen_search_url(keyword, type)
+        gen_url = self.ENGINE.gen_search_url(keyword, search_type)
         while True:
             # リクエスト先のurlを取得
             try:
@@ -447,7 +447,7 @@ class SearchEngine:
 
             # TODO: resultも関数に渡して重複チェックを行わせる
             # 検索結果をパースしてurlリストを取得する
-            links = self.ENGINE.get_links(html, type)
+            links = self.ENGINE.get_links(url, html, search_type)
 
             # linksの件数に応じて処理を実施
             if not len(links):

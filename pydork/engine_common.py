@@ -608,12 +608,13 @@ class CommonEngine:
         return 'GET', result, None
 
     # テキスト、画像検索の結果からlinksを取得するための集約function
-    def get_links(self, html: str, type: str):
+    def get_links(self, source_url, html: str, type: str):
         """get_links
 
         受け付けたhtmlを解析し、検索結果をlistに加工して返す関数.
 
         Args:
+            url  (str): 解析する検索結果のurl.
             html (str): 解析する検索結果のhtml.
             type (str): 検索タイプ([text, image]).現時点ではtextのみ対応.
 
@@ -670,7 +671,7 @@ class CommonEngine:
 
             # dictに加工してリスト化する
             # [{'title': 'title...', 'link': 'https://hogehoge....'}, {...}]
-            links = self.create_text_links(elinks, etitles, etexts)
+            links = self.create_text_links(source_url, elinks, etitles, etexts)
 
             return links
 
@@ -689,8 +690,9 @@ class CommonEngine:
             soup (BeautifulSoup): 解析するBeautifulSoupオブジェクト.
 
         Returns:
-            list: linkの検索結果([xxx,xxx,xxx...)
-            list: titleの検索結果([xxx,xxx,xxx...)
+            list: linkの検索結果([xxx,xxx,xxx...])
+            list: titleの検索結果([xxx,xxx,xxx...])
+            list: textの検索結果([xxx,xxx,xxx...])
         """
         # linkのurlを取得する
         elements = soup.select(self.SOUP_SELECT_URL)
@@ -744,7 +746,7 @@ class CommonEngine:
         return elinks, etitles, etexts
 
     # テキスト検索の1ページごとの検索結果から、links(links([{link: ..., title: ...},...]))を生成するfunction
-    def create_text_links(self, elinks, etitles, etext: list):
+    def create_text_links(self, source_url: str, elinks, etitles, etext: list):
         """create_text_links
 
         elinks, etitlesからlinks(get_linksのデータ)を返す関数.
@@ -773,11 +775,15 @@ class CommonEngine:
             if len(etext) > n:
                 d['text'] = etext[n]
 
+            # 検索元urlをdictに追加する
+            d['source_url'] = source_url
+
             if before_link != link:
                 links.append(d)
 
             before_link = link
             n += 1
+
         return links
 
     # サジェスト取得用のurlを生成
