@@ -105,7 +105,7 @@ if __name__ == "__main__":
             'fake_useragent',
             'lxml',
             'requests[socks]',
-            'selenium',
+            'selenium==4.7.2',
             'selenium_requests',
             'pickle-mixin',
             'sphinx',
