@@ -335,7 +335,7 @@ class SearchEngine:
         # ENGINEへMessage()を渡す
         self.ENGINE.set_messages(self.MESSAGE)
 
-        if self.ENGINE.LANG != "" or self.ENGINE.LOCALE != "":
+        if self.ENGINE.LANG == "" and self.ENGINE.LOCALE == "":
             self.set_lang()
 
         # メッセージ出力（コマンド実行時のみ）

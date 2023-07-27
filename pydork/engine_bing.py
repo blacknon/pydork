@@ -58,6 +58,21 @@ class Bing(CommonEngine):
 
         search_url = ''
 
+        # NOTE:
+        #   2023/07/27にて、queryが以下のように切り替わったため修正
+        #     - `https://www.bing.com/search?q=site%3aorebibou.com&search=%e9%80%81%e4%bf%a1&rdr=1&rdrig=D4B6730A85514F25BAE1E9BDC04F1C28&cc=us&setlang=en`
+        #       ```json
+        #       {
+        #         'q': ['site:orebibou.com'],
+        #         'search': ['送信'],
+        #         'rdr': ['1'],
+        #         'rdrig': ['D4B6730A85514F25BAE1E9BDC04F1C28'],
+        #         'cc': ['us'],
+        #         'setlang': ['en']
+        #       }
+        #       ```
+        #     - `https://www.bing.com/search?q=site%3aorebibou.com&search=%E9%80%81%E4%BF%A1&rdr=1&rdrig=D4B6730A85514F25BAE1E9BDC04F1C28&cc=us&setlang=en&FPIG=B035C5DE50AE4A328CB93C767B02D08B&first=11&FORM=PERE&count=100`
+
         # 検索タイプがtextの場合
         if type == 'text':
             # 検索urlを指定
@@ -67,16 +82,20 @@ class Bing(CommonEngine):
             url_param = {
                 'q': keyword,    # 検索キーワード
                 'count': '100',  # 1ページごとの表示件数
-                'go': '検索',
-                'qs': 'ds',
-                'from': 'QBRE',
+                'search': '送信',
+                'rdr': '1',
+                'from': 'PERE',
+                'cc': 'us',
+                'setlang': 'en',
                 'filters': '',   # 期間含めフィルターとして指定するパラメータ
                 'first': ''      # 開始位置
             }
 
             # lang/localeが設定されている場合
-            if self.LANG != '' and self.LOCALE != '':
-                url_param['mkt'] = self.LANG + '-' + self.LOCALE
+            if self.LANG != '':
+                url_param['setlang'] = self.LANG.lower()
+            if self.LOCALE != '':
+                url_param['cc'] = self.LOCALE.lower()
 
             # rangeが設定されている場合
             try:
