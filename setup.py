@@ -1,5 +1,8 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
+# Copyright (c) 2023 Blacknon. All rights reserved.
+# Use of this source code is governed by an MIT license
+# that can be found in the LICENSE file.
 # =======================================================
 
 
@@ -79,8 +82,8 @@ def get_data_files():
 
 
 name = 'pydork'
-version = '1.1.3'
-release = '1.1.3'
+version = '1.1.4'
+release = '1.1.4'
 
 if __name__ == "__main__":
     setuptools.setup(
@@ -102,7 +105,7 @@ if __name__ == "__main__":
             'fake_useragent',
             'lxml',
             'requests[socks]',
-            'selenium',
+            'selenium==4.7.2',
             'selenium_requests',
             'pickle-mixin',
             'sphinx',
@@ -122,6 +125,7 @@ if __name__ == "__main__":
             'Programming Language :: Python :: 3.7',
             'Programming Language :: Python :: 3.8',
             'Programming Language :: Python :: 3.9',
+            'Programming Language :: Python :: 3.10',
             'License :: OSI Approved :: MIT License',
         ],
         data_files=get_data_files(),

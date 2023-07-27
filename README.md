@@ -3,7 +3,7 @@ PyDork
 
 ## Description
 
-Scraping and listing text and image searches on Google, Bing, DuckDuckGo, Baidu, Yahoo japan.
+Scraping and listing text and image searches on **Google**, **Bing**, **DuckDuckGo**, **Baidu**, **Yahoo japan**.
 
 ## Install
 

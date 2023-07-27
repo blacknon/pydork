@@ -1,5 +1,8 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
+# Copyright (c) 2023 Blacknon. All rights reserved.
+# Use of this source code is governed by an MIT license
+# that can be found in the LICENSE file.
 # =======================================================
 
 
@@ -156,12 +159,13 @@ class Yahoo(CommonEngine):
 
         return url
 
-    def get_links(self, html: str, type: str):
+    def get_links(self, url: str, html: str, type: str):
         """get_links
 
         受け付けたhtmlを解析し、検索結果をlistに加工して返す関数.
 
         Args:
+            url  (str): 解析する検索結果のurl.
             html (str): 解析する検索結果のhtml.
             type (str): 検索タイプ([text, image]).現時点ではtextのみ対応.
 
@@ -184,10 +188,11 @@ class Yahoo(CommonEngine):
                 if self.IS_DEBUG:
                     print(Color.PURPLE + '[JsonElement]' + Color.END,
                           file=sys.stderr)
-                    print(Color.PURPLE + element + Color.END, file=sys.stderr)
+                    print(Color.PURPLE + element + Color.END,
+                          file=sys.stderr)  # type: ignore
 
                 # jsonからデータを抽出　
-                j = json.loads(element)
+                j = json.loads(element)  # type: ignore
 
                 # debug
                 if self.IS_DEBUG:
@@ -201,7 +206,7 @@ class Yahoo(CommonEngine):
                 etitles = [e['title'] for e in jd]
                 etexts = [e['description'] for e in jd]
 
-                links = self.create_text_links(elinks, etitles, etexts)
+                links = self.create_text_links(url, elinks, etitles, etexts)
 
             else:
                 self.SOUP_SELECT_URL = '.sw-Card__headerSpace > .sw-Card__title > a'
@@ -209,11 +214,11 @@ class Yahoo(CommonEngine):
                 self.SOUP_SELECT_TEXT = '.sw-Card__floatContainer > .sw-Card__summary'
 
                 # CommonEngineの処理を呼び出す
-                links = super().get_links(html, type)
+                links = super().get_links(url, html, type)
 
         elif type == 'image':
             # CommonEngineの処理を呼び出す
-            links = super().get_links(html, type)
+            links = super().get_links(url, html, type)
 
         return links
 
@@ -268,7 +273,7 @@ class Yahoo(CommonEngine):
             soup = BeautifulSoup(html, features="lxml")
             html = soup.find("pre").text
         data = json.loads(html)
-        suggests[char if char == '' else char[-1]] = [e['key']
+        suggests[char if char == '' else char[-1]] = [e['key']  # type: ignore
                                                       for e in data['gossip']['results']]
 
         return suggests

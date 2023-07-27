@@ -1,5 +1,8 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
+# Copyright (c) 2023 Blacknon. All rights reserved.
+# Use of this source code is governed by an MIT license
+# that can be found in the LICENSE file.
 # =======================================================
 
 
@@ -182,17 +185,18 @@ class Google(CommonEngine):
 
         return url
 
-    def get_links(self, html: str, type: str):
+    def get_links(self, url: str, html: str, type: str):
         """get_links
 
         受け付けたhtmlを解析し、検索結果をlistに加工して返す関数.
 
         Args:
+            url  (str): 解析する検索結果のurl.
             html (str): 解析する検索結果のhtml.
             type (str): 検索タイプ([text, image]).現時点ではtextのみ対応.
 
         Returns:
-            list: 検索結果(`[{'title': 'title...', 'url': 'https://hogehoge....'}, {...}]`)
+            list: 検索結果。変数名はlinks。(`[{'title': 'title...', 'url': 'https://hogehoge....'}, {...}]`)
         """
 
         # テキスト検索の場合
@@ -207,21 +211,21 @@ class Google(CommonEngine):
             if self.USE_SELENIUM:
                 self.SOUP_SELECT_URL = '.yuRUbf > a'
                 self.SOUP_SELECT_TITLE = '.yuRUbf > a > .LC20lb'
-                self.SOUP_SELECT_TEXT = '.WZ8Tjf'
+                self.SOUP_SELECT_TEXT = '.lEBKkf'
                 self.SOUP_SELECT_NEXT_URL = '.d6cvqb > a'
 
             # Splash経由で通信している場合
             elif self.USE_SPLASH:
                 self.SOUP_SELECT_URL = '.yuRUbf > a'
                 self.SOUP_SELECT_TITLE = '.yuRUbf > a > .LC20lb'
-                self.SOUP_SELECT_TEXT = '.WZ8Tjf'
+                self.SOUP_SELECT_TEXT = '.lEBKkf'
                 self.SOUP_SELECT_NEXT_URL = '.d6cvqb > a'
 
             # TODO: SEARCH_NEXT_URLを書き換える
             self.get_nextpage_url(html)
 
             # CommonEngineの処理を呼び出す
-            links = super().get_links(html, type)
+            links = super().get_links(url, html, type)
 
         # イメージ検索の場合
         elif type == 'image':
@@ -300,7 +304,7 @@ class Google(CommonEngine):
         sug_data = sug_root.xpath("//suggestion")
         data = [s.get("data") for s in sug_data]
 
-        suggests[char if char == '' else char[-1]] = data
+        suggests[char if char == '' else char[-1]] = data  # type: ignore
 
         return suggests
 
@@ -318,11 +322,13 @@ class Google(CommonEngine):
             self.SEARCH_NEXT_URL = None
 
         elif len(elinks) == 1:
-            next_url = parse.urljoin(self.ENGINE_TOP_URL, elinks[0])
+            next_url = parse.urljoin(
+                self.ENGINE_TOP_URL, elinks[0])  # type: ignore
             self.SEARCH_NEXT_URL = next_url
 
         elif len(elinks) > 1:
-            next_url = parse.urljoin(self.ENGINE_TOP_URL, elinks[1])
+            next_url = parse.urljoin(
+                self.ENGINE_TOP_URL, elinks[1])  # type: ignore
             self.SEARCH_NEXT_URL = next_url
 
     def processings_elist(self, elinks, etitles, etexts: list):

@@ -1,11 +1,13 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
+# Copyright (c) 2023 Blacknon. All rights reserved.
+# Use of this source code is governed by an MIT license
+# that can be found in the LICENSE file.
 # =======================================================
 
 
 """common
     * 共通系や雑多な処理を詰め合わせたバルクモジュール.
-
 """
 
 import sys
@@ -82,7 +84,7 @@ class Color:
 class Message:
     """Message
 
-    メッセージの出力を簡易化するためのClass(未完成...).
+    メッセージの出力を簡易化するためのClass.
 
     Examples:
 
@@ -156,6 +158,17 @@ class Message:
         return result
 
     def print_line(self, *text, use_header=True, separator=' ', file=sys.stdout, header=None):
+        """print_line
+
+        メッセージを出力する(行)
+
+        Args:
+            text: メッセージとして出力するテキスト行
+            use_header: `header`で指定しているヘッダーを行頭に表示するかどうか
+            separator: printする際に使用する区切り文字
+            file: 出力先のファイル(デフォルトはstdout)
+            header: ヘッダーとして使用する文字列を指定
+        """
         # headerの生成
         if header is None:
             header = self.HEADER
@@ -169,6 +182,18 @@ class Message:
             print(*text, sep=separator, file=file)
 
     def print_text(self, text, mode='message', use_header=True, separator=' ', file=sys.stdout, header=None):
+        """print_line
+
+        メッセージを出力する(テキスト)
+
+        Args:
+            text: メッセージとして出力するテキスト
+            mode: メッセージの出力モード(`message`, `error`, `warn`, `info`, `debug`)
+            use_header: `header`で指定しているヘッダーを行頭に表示するかどうか
+            separator: printする際に使用する区切り文字
+            file: 出力先のファイル(デフォルトはstdout)
+            header: ヘッダーとして使用する文字列を指定
+        """
         # is_commandが有効のときのみ出力させる
         if not self.IS_COMMAND:
             return
@@ -183,6 +208,7 @@ class Message:
         text = self.replace(text)
 
         # case
+        text_color: Color = Color(Color.END)
         if mode == 'message':  # modeが `message` のとき
             text_color = Color(Color.WHITE)
 
@@ -218,3 +244,26 @@ class Message:
                             separator=separator, use_header=use_header, file=file, header=header)
 
         return
+
+
+# 渡されたリスト内のdictに`num`を追加する関数
+def set_counter(links: list):
+    """set_counter
+
+    links(list)の要素に`num`キーを追加し、連続した数値を入れていく
+
+    Args:
+        links(list): リンクのリスト. ex) [{'link', 'http://...', 'title': 'hogehoge...'}, {'link': '...', 'title': '...'}, ... ]
+    Returns:
+        result(list):  [{'link', 'http://...', 'title': 'hogehoge...', num: 1}, {'link': '...', 'title': '...', num: 2}, ... ]
+    """
+    # result(list)の生成
+    result = list()
+
+    num = 1
+    for d in links:
+        d["num"] = num
+        num += 1
+        result.append(d)
+
+    return result

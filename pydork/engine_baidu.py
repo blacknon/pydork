@@ -1,5 +1,8 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
+# Copyright (c) 2023 Blacknon. All rights reserved.
+# Use of this source code is governed by an MIT license
+# that can be found in the LICENSE file.
 # =======================================================
 
 
@@ -136,7 +139,7 @@ class Baidu(CommonEngine):
 
         return url
 
-    def get_links(self, html: str, type: str):
+    def get_links(self, url: str, html: str, type: str):
         """get_links
 
         受け付けたhtmlを解析し、検索結果をlistに加工して返す関数.
@@ -158,7 +161,7 @@ class Baidu(CommonEngine):
             self.SOUP_SELECT_TEXT = '.c-gap-top-small > span'
 
             # CommonEngineの処理を呼び出す
-            links = super().get_links(html, type)
+            links = super().get_links(url, html, type)
 
         elif type == 'image':
             # unicode escape

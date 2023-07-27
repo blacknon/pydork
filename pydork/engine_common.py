@@ -1,5 +1,8 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
+# Copyright (c) 2023 Blacknon. All rights reserved.
+# Use of this source code is governed by an MIT license
+# that can be found in the LICENSE file.
 # =======================================================
 
 
@@ -50,6 +53,7 @@ class CommonEngine:
         # 初期値の作成
         self.LOCK = None
         self.COOKIE_FILE = ''
+        self.COOKIE_FILE_DELETE = False
         self.SPLASH_URI = ''
         self.PROXY = ''
         self.USER_AGENT = ''
@@ -58,7 +62,7 @@ class CommonEngine:
         self.IS_DEBUG = False
         self.IS_COMMAND = False
         self.IS_DISABLE_HEADLESS = False
-        self.MESSAGE = False
+        self.MESSAGE: Message
         self.IGNORE_SSL_VERIFY = False
 
         # ReCaptcha画面かどうかの識別用(初期値(ブランク))
@@ -94,7 +98,7 @@ class CommonEngine:
         self.RANGE_END = end
 
     # user_agentの設定値を受け付ける(引数がない場合はランダム。Seleniumの際は自動的に使用したbrowserのagentを指定)
-    def set_user_agent(self, user_agent: str = None, browser: str = None):
+    def set_user_agent(self, user_agent: str = None, browser: str = None):  # type: ignore
         """set_user_agent
 
         user_agentの値を受け付ける.
@@ -134,7 +138,7 @@ class CommonEngine:
     #   - splashより優先
     #   - host, browserは、指定がない場合はそれぞれデフォルト設定(hostは指定なし、browserはchrome)での動作
     #   - browserは `chrome` or `firefox` のみ受け付ける
-    def set_selenium(self, uri: str = None, browser: str = None):
+    def set_selenium(self, uri: str = None, browser: str = None):  # type: ignore
         """set_selenium
 
         検索時にSelenium経由で通信を行う.
@@ -196,6 +200,13 @@ class CommonEngine:
         現時点ではSeleniumでのみ動作.
         """
 
+        # cookieファイルが存在しない場合、空ファイルで作成する
+        exist_cookie_file = os.path.isfile(self.COOKIE_FILE)
+        if not exist_cookie_file:
+            cookie_file = open(self.COOKIE_FILE, 'w')
+            cookie_file.write('')
+            cookie_file.close()
+
         # cookieファイルのサイズを取得
         file_size = os.path.getsize(self.COOKIE_FILE)
 
@@ -207,7 +218,7 @@ class CommonEngine:
             # seleniumを使う場合
             if self.USE_SELENIUM:
                 # 事前アクセスが必要になるため、検索対象ドメインのTOPページにアクセスしておく
-                self.driver.get(self.ENGINE_TOP_URL)
+                self.driver.get(self.ENGINE_TOP_URL)  # type: ignore
 
                 # cookieを設定していく
                 for cookie in cookies:
@@ -393,7 +404,7 @@ class CommonEngine:
                 EC.presence_of_all_elements_located)
 
             # wait 5 seconds(wait DOM)
-            if self.NAME in ('Bing', 'Baidu', 'DuckDuckGo'):
+            if self.NAME in ('Bing', 'Baidu', 'DuckDuckGo'):  # type: ignore
                 self.driver.implicitly_wait(20)
 
             # get result
@@ -407,7 +418,7 @@ class CommonEngine:
                 EC.presence_of_all_elements_located)
 
             # wait 5 seconds(wait DOM)
-            if self.NAME in ('Bing', 'Baidu', 'DuckDuckGo'):
+            if self.NAME in ('Bing', 'Baidu', 'DuckDuckGo'):  # type: ignore
                 self.driver.implicitly_wait(20)
 
             # get result
@@ -448,7 +459,7 @@ class CommonEngine:
 
         # NOTE: Googleの画像検索のPOSTがSplashではレンダリングできないので、特例対応でrequestsを使用する.
         # TODO: Splashでもレンダリングできるようになったら書き換える.
-        elif method == 'POST' and self.NAME == 'Google' and self.IMAGE_URL in url:
+        elif method == 'POST' and self.NAME == 'Google' and self.IMAGE_URL in url:  # type: ignore
             # create session
             session = requests.session()
 
@@ -474,7 +485,7 @@ class CommonEngine:
         elif method == 'POST':
             headers = {'Content-Type': 'application/json'}
             params['http_method'] = 'POST'
-            params['body'] = parse.urlencode(data)
+            params['body'] = parse.urlencode(data)  # type: ignore
 
             result = self.session.post(
                 splash_url,
@@ -604,12 +615,13 @@ class CommonEngine:
         return 'GET', result, None
 
     # テキスト、画像検索の結果からlinksを取得するための集約function
-    def get_links(self, html: str, type: str):
+    def get_links(self, source_url, html: str, type: str):
         """get_links
 
         受け付けたhtmlを解析し、検索結果をlistに加工して返す関数.
 
         Args:
+            url  (str): 解析する検索結果のurl.
             html (str): 解析する検索結果のhtml.
             type (str): 検索タイプ([text, image]).現時点ではtextのみ対応.
 
@@ -626,7 +638,7 @@ class CommonEngine:
 
             # before processing elists
             self.MESSAGE.print_text(
-                ','.join(elinks),
+                ','.join(elinks),  # type: ignore
                 header=self.MESSAGE.HEADER + ': ' + Color.BLUE +
                 '[BeforeProcessing elinks]' + Color.END,
                 separator=" :",
@@ -648,7 +660,7 @@ class CommonEngine:
 
             # after processing elists
             self.MESSAGE.print_text(
-                ','.join(elinks),
+                ','.join(elinks),  # type: ignore
                 header=self.MESSAGE.HEADER + ': ' +
                 Color.GREEN + '[AfterProcessing elinks]' + Color.END,
                 separator=" :",
@@ -666,7 +678,7 @@ class CommonEngine:
 
             # dictに加工してリスト化する
             # [{'title': 'title...', 'link': 'https://hogehoge....'}, {...}]
-            links = self.create_text_links(elinks, etitles, etexts)
+            links = self.create_text_links(source_url, elinks, etitles, etexts)
 
             return links
 
@@ -685,8 +697,9 @@ class CommonEngine:
             soup (BeautifulSoup): 解析するBeautifulSoupオブジェクト.
 
         Returns:
-            list: linkの検索結果([xxx,xxx,xxx...)
-            list: titleの検索結果([xxx,xxx,xxx...)
+            list: linkの検索結果([xxx,xxx,xxx...])
+            list: titleの検索結果([xxx,xxx,xxx...])
+            list: textの検索結果([xxx,xxx,xxx...])
         """
         # linkのurlを取得する
         elements = soup.select(self.SOUP_SELECT_URL)
@@ -740,7 +753,7 @@ class CommonEngine:
         return elinks, etitles, etexts
 
     # テキスト検索の1ページごとの検索結果から、links(links([{link: ..., title: ...},...]))を生成するfunction
-    def create_text_links(self, elinks, etitles, etext: list):
+    def create_text_links(self, source_url: str, elinks, etitles, etext: list):
         """create_text_links
 
         elinks, etitlesからlinks(get_linksのデータ)を返す関数.
@@ -769,11 +782,15 @@ class CommonEngine:
             if len(etext) > n:
                 d['text'] = etext[n]
 
+            # 検索元urlをdictに追加する
+            d['source_url'] = source_url
+
             if before_link != link:
                 links.append(d)
 
             before_link = link
             n += 1
+
         return links
 
     # サジェスト取得用のurlを生成

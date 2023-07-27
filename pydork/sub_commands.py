@@ -1,8 +1,11 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
+# Copyright (c) 2023 Blacknon. All rights reserved.
+# Use of this source code is governed by an MIT license
+# that can be found in the LICENSE file.
 # =======================================================
 
-"""subcommand
+"""subcommands
     * pydorkをコマンドとして動作させる際の処理を記載しているモジュール
 """
 
@@ -13,6 +16,8 @@ import json
 import os
 import pathlib
 
+from typing import List
+from argparse import Namespace
 from jinja2 import Template
 
 from .engine import SearchEngine, ENGINES
@@ -34,31 +39,32 @@ def run_subcommand(subcommand, args):
 
     # query及びfileがともに指定なしの場合、エラーにして返す
     if args.query == "" and args.file == "" and args.template_file == "":
-        print("Error: クエリもしくはファイルを指定してください.")
+        print("Error: クエリもしくはファイルを指定してください.", file=sys.stderr)
         return
 
     # args.fileのチェック
     if args.file != "":
         if not os.path.exists(args.file):
-            print("Error: ファイルが存在しません.")
+            print("Error: ファイルが存在しません.", file=sys.stderr)
             return
 
-    # args.fileのチェック
+    # args.template_fileのチェック
     if args.template_file != "":
         if not os.path.exists(args.template_file):
-            print("Error: ファイルが存在しません.")
+            print("Error: ファイルが存在しません.", file=sys.stderr)
             return
 
         if args.template_variable == "":
-            print("Error: テンプレート変数が指定されていません.")
+            print("Error: テンプレート変数が指定されていません.", file=sys.stderr)
             return
 
         try:
             template_variable = json.loads(args.template_variable)
         except Exception:
-            print("Error: テンプレート変数の形式がまちがっています.")
+            print("Error: テンプレート変数の形式がまちがっています.", file=sys.stderr)
             return
 
+    # 各サブコマンドのチェック
     target = None
     search_mode = ''
     if subcommand == 'search':
@@ -69,32 +75,18 @@ def run_subcommand(subcommand, args):
                 file=sys.stderr
             )
             return
-        target = search
+        target = run_search
         search_mode = 'text'
 
     elif subcommand == 'image':
-        target = search
+        target = run_search
         search_mode = 'image'
 
     elif subcommand == 'suggest':
-        target = suggest
+        target = run_suggest
 
     # create query_list
-    query_list = list()
-
-    # append query
-    if args.query != "":
-        query_list.append(args.query)
-
-    # append query in file
-    if args.file != "":
-        # fileのfull pathを取得
-        file = pathlib.Path(args.file).expanduser()
-
-        # ファイルを開いて1行ずつqueryに追加する
-        with open(file) as f:
-            file_querys = [s.strip() for s in f.readlines()]
-            query_list.extend(file_querys)
+    query_list = generate_query_list(args)
 
     # append query in template file
     if args.template_file != "":
@@ -157,7 +149,7 @@ def run_subcommand(subcommand, args):
 
 
 # SearchEngineのオプション設定用関数
-def set_se_options(se, args):
+def set_se_options(se: SearchEngine, args: Namespace):
     """set_se_options
 
     Args:
@@ -220,11 +212,14 @@ def set_se_options(se, args):
     # set cookie driver(last set)
     se.set_cookie_files(args.cookies)
 
+    # set cookie file delete
+    se.set_cookie_files_delete(args.delete_cookies)
+
     return se
 
 
 # 検索結果を出力する
-def print_search_result(result, args, message):
+def print_search_result(result, args: Namespace, message: Message):
     """print_search_result
 
 
@@ -279,8 +274,33 @@ def print_search_result(result, args, message):
         message.print_line(*data, separator=sep)
 
 
+# generate
+def generate_query_list(args: Namespace):
+    """generate_query_list
+
+    """
+    # create query_list
+    query_list: List[str] = list()
+
+    # append query
+    if args.query != "":
+        query_list.append(args.query)
+
+    # append query in file
+    if args.file != "":
+        # fileのfull pathを取得
+        file = pathlib.Path(args.file).expanduser()
+
+        # ファイルを開いて1行ずつqueryに追加する
+        with open(file) as f:
+            file_querys = [s.strip() for s in f.readlines()]
+            query_list.extend(file_querys)
+
+    return query_list
+
+
 # 検索
-def search(engine: str, query_list: list, args, thread_result: dict, cmd=False, lock=None, mode='text'):
+def run_search(engine: str, query_list: list, args, thread_result: dict, cmd=False, lock=None, mode='text'):
     """search
 
     Args:
@@ -293,7 +313,7 @@ def search(engine: str, query_list: list, args, thread_result: dict, cmd=False, 
         type (str, optional): 検索タイプ. `text` or `image`.
     """
 
-    # start search engine class
+    # start SearchEngine class
     se = SearchEngine()
 
     # Set Engine
@@ -324,7 +344,7 @@ def search(engine: str, query_list: list, args, thread_result: dict, cmd=False, 
     for query in query_list:
         # 検索を実行
         result = se.search(
-            query, type=search_type,
+            query, search_type=search_type,
             maximum=args.num
         )
 
@@ -353,7 +373,7 @@ def search(engine: str, query_list: list, args, thread_result: dict, cmd=False, 
 
 
 # サジェスト
-def suggest(engine: str, query_list: list, args, thread_result: dict, cmd=False, lock=None, mode=''):
+def run_suggest(engine: str, query_list: list, args: Namespace, thread_result: dict, cmd=False, lock=None, mode=''):
     """suggest
 
     Args:
@@ -363,7 +383,7 @@ def suggest(engine: str, query_list: list, args, thread_result: dict, cmd=False,
         thread_result(dict): 結果を1箇所に集約するためのresult dict. json出力するときのみ使用.
         cmd (bool, optional): commandで実行しているか否か. Defaults to False.
         lock (threading.Lock): threadingのマルチスレッドで使用するLock.現在は未使用. Defaults to None.
-        mode (str, optional): マルチスレッドでsearchとある程度共用で使えるようにするための引数. 利用していない. Defaults to ''.
+        mode (str, optional): マルチスレッドでsearchある程度共用で使えるようにするための引数. 利用していない. Defaults to ''.
     """
 
     # start search engine class
