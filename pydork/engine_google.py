@@ -10,6 +10,7 @@
     * Google用の検索用Classを持つモジュール.
 """
 
+import sys
 
 import json
 import os
@@ -77,11 +78,9 @@ class Google(CommonEngine):
             # 検索パラメータの設定
             url_param = {
                 'q': keyword,   # 検索キーワード
-                'oq': keyword,  # 検索キーワード
+                'oq': keyword,   # 検索キーワード
                 'num': '100',   # 1ページごとの表示件数.
                 'filter': '0',  # 類似ページのフィルタリング(0...無効, 1...有効)
-                'start': '',    # 開始位置
-                'tbs': '',      # 期間
                 'nfpr': '1'     # もしかして検索(Escape hatch)を無効化
             }
 
@@ -209,17 +208,17 @@ class Google(CommonEngine):
 
             # Selenium経由、かつFirefoxを使っている場合
             if self.USE_SELENIUM:
-                self.SOUP_SELECT_URL = '.yuRUbf > a'
-                self.SOUP_SELECT_TITLE = '.yuRUbf > a > .LC20lb'
+                self.SOUP_SELECT_URL = '.yuRUbf > div > a'
+                self.SOUP_SELECT_TITLE = '.yuRUbf > div > a > .LC20lb'
                 self.SOUP_SELECT_TEXT = '.lEBKkf'
-                self.SOUP_SELECT_NEXT_URL = '.d6cvqb > a'
+                self.SOUP_SELECT_NEXT_URL = '.AaVjTc > tbody > tr > td > a'
 
             # Splash経由で通信している場合
             elif self.USE_SPLASH:
                 self.SOUP_SELECT_URL = '.yuRUbf > a'
                 self.SOUP_SELECT_TITLE = '.yuRUbf > a > .LC20lb'
                 self.SOUP_SELECT_TEXT = '.lEBKkf'
-                self.SOUP_SELECT_NEXT_URL = '.d6cvqb > a'
+                self.SOUP_SELECT_NEXT_URL = '.AaVjTc > tbody > tr > td > a'
 
             # TODO: SEARCH_NEXT_URLを書き換える
             self.get_nextpage_url(html)
@@ -315,7 +314,8 @@ class Google(CommonEngine):
         # BeautifulSoupでnext urlの要素を確認する
         elements = soup.select(self.SOUP_SELECT_NEXT_URL)
 
-        # next urlを取得する
+        print(elements, file=sys.stderr)
+        # next urlのリストを取得する
         elinks = [e['href'] for e in elements]
 
         if len(elinks) == 0:
@@ -327,6 +327,7 @@ class Google(CommonEngine):
             self.SEARCH_NEXT_URL = next_url
 
         elif len(elinks) > 1:
+            # DEBUG: なんかおかしいのでhtml確認して対応
             next_url = parse.urljoin(
                 self.ENGINE_TOP_URL, elinks[1])  # type: ignore
             self.SEARCH_NEXT_URL = next_url

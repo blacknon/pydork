@@ -10,10 +10,12 @@
     * SearchEngine Classから呼び出す、各検索エンジンで共通の処理を保持させる継承用Classである `CommonEngine` を持つモジュール.
 """
 
+import sys
 
 import requests
 import os
 import pickle
+import time
 
 # selenium driver auto install packages
 import chromedriver_autoinstaller
@@ -372,12 +374,9 @@ class CommonEngine:
                 pass
             self.driver = Firefox(options=options, firefox_profile=profile)
 
-        # NOTE:
-        #   User Agentを確認する場合、↓の処理で実施可能(Chrome/Firefoxともに)。
-        # ```python
-        # user_agent = self.driver.execute_script("return navigator.userAgent")
-        # print(user_agent)
-        # ```
+        # User agentを指定させる
+        user_agent = self.driver.execute_script("return navigator.userAgent")
+        self.set_user_agent(user_agent)
 
         return
 
@@ -577,6 +576,12 @@ class CommonEngine:
         # 優先度1: Selenium経由でのアクセス
         if self.USE_SELENIUM:
             result = self.request_selenium(url, method=method, data=data)
+
+            for i in range(0, 10):
+                self.driver.execute_script(
+                    "window.scrollTo(0,document.body.scrollHeight)"
+                )
+                time.sleep(3)
 
         # 優先度2: Splash経由でのアクセス(Seleniumが有効になってない場合はこちら)
         elif self.USE_SPLASH:
