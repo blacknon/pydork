@@ -10,7 +10,7 @@
     * Google用の検索用Classを持つモジュール.
 """
 
-import sys
+# import sys
 
 import json
 import os
@@ -19,7 +19,7 @@ from time import sleep
 from json.decoder import JSONDecodeError
 from urllib import parse
 from lxml import etree
-from bs4 import BeautifulSoup
+# from bs4 import BeautifulSoup
 
 from .common import Color
 from .recaptcha import TwoCaptcha
@@ -79,9 +79,9 @@ class Google(CommonEngine):
             url_param = {
                 'q': keyword,   # 検索キーワード
                 'oq': keyword,   # 検索キーワード
-                'num': '100',   # 1ページごとの表示件数.
-                'filter': '0',  # 類似ページのフィルタリング(0...無効, 1...有効)
-                'nfpr': '1'     # もしかして検索(Escape hatch)を無効化
+                'num': 100,   # 1ページごとの表示件数.
+                'filter': 0,  # 類似ページのフィルタリング(0...無効, 1...有効)
+                'nfpr': 1     # もしかして検索(Escape hatch)を無効化
             }
 
             # lang/localeが設定されている場合
@@ -106,17 +106,11 @@ class Google(CommonEngine):
 
             page = 0
             while True:
-                if page == 0:
-                    # parameterにページを開始する番号を指定
-                    url_param['start'] = str(page * 100)
-                    params = parse.urlencode(url_param)
+                # parameterにページを開始する番号を指定
+                url_param['start'] = str(page * 100)
+                params = parse.urlencode(url_param)
 
-                    target_url = search_url + '?' + params
-
-                else:
-                    target_url = self.SEARCH_NEXT_URL
-                    if self.SEARCH_NEXT_URL is None:
-                        break
+                target_url = search_url + '?' + params
 
                 yield 'GET', target_url, None
                 page += 1
@@ -221,7 +215,7 @@ class Google(CommonEngine):
                 self.SOUP_SELECT_NEXT_URL = '.AaVjTc > tbody > tr > td > a'
 
             # TODO: SEARCH_NEXT_URLを書き換える
-            self.get_nextpage_url(html)
+            # self.get_nextpage_url(html)
 
             # CommonEngineの処理を呼び出す
             links = super().get_links(url, html, type)
@@ -306,31 +300,6 @@ class Google(CommonEngine):
         suggests[char if char == '' else char[-1]] = data  # type: ignore
 
         return suggests
-
-    def get_nextpage_url(self, html: str):
-        # BeautifulSoupでの解析を実施
-        soup = BeautifulSoup(html, 'lxml')
-
-        # BeautifulSoupでnext urlの要素を確認する
-        elements = soup.select(self.SOUP_SELECT_NEXT_URL)
-
-        print(elements, file=sys.stderr)
-        # next urlのリストを取得する
-        elinks = [e['href'] for e in elements]
-
-        if len(elinks) == 0:
-            self.SEARCH_NEXT_URL = None
-
-        elif len(elinks) == 1:
-            next_url = parse.urljoin(
-                self.ENGINE_TOP_URL, elinks[0])  # type: ignore
-            self.SEARCH_NEXT_URL = next_url
-
-        elif len(elinks) > 1:
-            # DEBUG: なんかおかしいのでhtml確認して対応
-            next_url = parse.urljoin(
-                self.ENGINE_TOP_URL, elinks[1])  # type: ignore
-            self.SEARCH_NEXT_URL = next_url
 
     def processings_elist(self, elinks, etitles, etexts: list):
         """processings_elist
