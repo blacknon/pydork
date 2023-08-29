@@ -369,8 +369,8 @@ class SearchEngine:
             self.ENGINE.MESSAGE.print_text(
                 url,
                 mode='debug',
-                separator=": ",
-                header=self.ENGINE.MESSAGE.HEADER + ': ' +
+                separator=": ",  # type: ignore
+                header=self.ENGINE.MESSAGE.HEADER + ': ' + \
                 Color.GRAY + '[DEBUG]: [TargetURL]' + Color.END
             )
 
@@ -378,8 +378,8 @@ class SearchEngine:
             self.ENGINE.MESSAGE.print_text(
                 self.ENGINE.USER_AGENT,
                 mode='debug',
-                separator=": ",
-                header=self.ENGINE.MESSAGE.HEADER + ': ' +
+                separator=": ",  # type: ignore
+                header=self.ENGINE.MESSAGE.HEADER + ': ' + \
                 Color.GRAY + '[DEBUG]: [UserAgent]' + Color.END
             )
 
@@ -391,8 +391,8 @@ class SearchEngine:
             self.ENGINE.MESSAGE.print_text(
                 html,
                 mode='debug',
-                separator=": ",
-                header=self.ENGINE.MESSAGE.HEADER + ': ' +
+                separator=": ",  # type: ignore
+                header=self.ENGINE.MESSAGE.HEADER + ': ' + \
                 Color.GRAY + '[DEBUG]: [Response]' + Color.END
             )
 
@@ -425,8 +425,8 @@ class SearchEngine:
                             # debug
                             self.ENGINE.MESSAGE.print_text(
                                 html,
-                                mode='debug',
-                                header=self.ENGINE.MESSAGE.HEADER + ': ' + Color.GRAY +
+                                mode='debug',  # type: ignore
+                                header=self.ENGINE.MESSAGE.HEADER + ': ' + Color.GRAY + \
                                 '[DEBUG]: [ReCaptchaedResponse]' + Color.END,
                                 separator=": "
                             )
@@ -495,7 +495,8 @@ class SearchEngine:
 
         # commandの場合の出力処理
         self.ENGINE.MESSAGE.print_text(
-            'Finally got ' + self.ENGINE.COLOR +
+            # type: ignore
+            'Finally got ' + self.ENGINE.COLOR + \
             str(len(result)) + Color.END + ' links.',
             header=self.ENGINE.MESSAGE.ENGINE,
             separator=": ",

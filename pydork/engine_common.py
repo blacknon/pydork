@@ -10,8 +10,6 @@
     * SearchEngine Classから呼び出す、各検索エンジンで共通の処理を保持させる継承用Classである `CommonEngine` を持つモジュール.
 """
 
-import sys
-
 import requests
 import os
 import pickle
@@ -644,7 +642,7 @@ class CommonEngine:
             # before processing elists
             self.MESSAGE.print_text(
                 ','.join(elinks),  # type: ignore
-                header=self.MESSAGE.HEADER + ': ' + Color.BLUE +
+                header=self.MESSAGE.HEADER + ': ' + Color.BLUE + \
                 '[BeforeProcessing elinks]' + Color.END,
                 separator=" :",
                 mode="debug",
@@ -652,9 +650,9 @@ class CommonEngine:
 
             # before processing etitles
             self.MESSAGE.print_text(
-                ','.join(etitles),
-                header=self.MESSAGE.HEADER + ': ' +
-                Color.BLUE + '[BeforeProcessing etitles]' + Color.END,
+                ','.join(etitles),  # type: ignore
+                header=self.MESSAGE.HEADER + ': ' + Color.BLUE + \
+                '[BeforeProcessing etitles]' + Color.END,
                 separator=" :",
                 mode="debug",
             )
@@ -666,7 +664,7 @@ class CommonEngine:
             # after processing elists
             self.MESSAGE.print_text(
                 ','.join(elinks),  # type: ignore
-                header=self.MESSAGE.HEADER + ': ' +
+                header=self.MESSAGE.HEADER + ': ' + \
                 Color.GREEN + '[AfterProcessing elinks]' + Color.END,
                 separator=" :",
                 mode="debug",
@@ -674,8 +672,8 @@ class CommonEngine:
 
             # after processing etitles
             self.MESSAGE.print_text(
-                ','.join(etitles),
-                header=self.MESSAGE.HEADER + ': ' +
+                ','.join(etitles),  # type: ignore
+                header=self.MESSAGE.HEADER + ': ' + \
                 Color.GREEN + '[AfterProcessing etitles]' + Color.END,
                 separator=" :",
                 mode="debug",
