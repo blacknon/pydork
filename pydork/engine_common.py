@@ -10,10 +10,10 @@
     * SearchEngine Classから呼び出す、各検索エンジンで共通の処理を保持させる継承用Classである `CommonEngine` を持つモジュール.
 """
 
-
 import requests
 import os
 import pickle
+import time
 
 # selenium driver auto install packages
 import chromedriver_autoinstaller
@@ -372,12 +372,9 @@ class CommonEngine:
                 pass
             self.driver = Firefox(options=options, firefox_profile=profile)
 
-        # NOTE:
-        #   User Agentを確認する場合、↓の処理で実施可能(Chrome/Firefoxともに)。
-        # ```python
-        # user_agent = self.driver.execute_script("return navigator.userAgent")
-        # print(user_agent)
-        # ```
+        # User agentを指定させる
+        user_agent = self.driver.execute_script("return navigator.userAgent")
+        self.set_user_agent(user_agent)
 
         return
 
@@ -578,6 +575,12 @@ class CommonEngine:
         if self.USE_SELENIUM:
             result = self.request_selenium(url, method=method, data=data)
 
+            for i in range(0, 10):
+                self.driver.execute_script(
+                    "window.scrollTo(0,document.body.scrollHeight)"
+                )
+                time.sleep(3)
+
         # 優先度2: Splash経由でのアクセス(Seleniumが有効になってない場合はこちら)
         elif self.USE_SPLASH:
             # create splash url
@@ -639,7 +642,7 @@ class CommonEngine:
             # before processing elists
             self.MESSAGE.print_text(
                 ','.join(elinks),  # type: ignore
-                header=self.MESSAGE.HEADER + ': ' + Color.BLUE +
+                header=self.MESSAGE.HEADER + ': ' + Color.BLUE + \
                 '[BeforeProcessing elinks]' + Color.END,
                 separator=" :",
                 mode="debug",
@@ -647,9 +650,9 @@ class CommonEngine:
 
             # before processing etitles
             self.MESSAGE.print_text(
-                ','.join(etitles),
-                header=self.MESSAGE.HEADER + ': ' +
-                Color.BLUE + '[BeforeProcessing etitles]' + Color.END,
+                ','.join(etitles),  # type: ignore
+                header=self.MESSAGE.HEADER + ': ' + Color.BLUE + \
+                '[BeforeProcessing etitles]' + Color.END,
                 separator=" :",
                 mode="debug",
             )
@@ -661,7 +664,7 @@ class CommonEngine:
             # after processing elists
             self.MESSAGE.print_text(
                 ','.join(elinks),  # type: ignore
-                header=self.MESSAGE.HEADER + ': ' +
+                header=self.MESSAGE.HEADER + ': ' + \
                 Color.GREEN + '[AfterProcessing elinks]' + Color.END,
                 separator=" :",
                 mode="debug",
@@ -669,8 +672,8 @@ class CommonEngine:
 
             # after processing etitles
             self.MESSAGE.print_text(
-                ','.join(etitles),
-                header=self.MESSAGE.HEADER + ': ' +
+                ','.join(etitles),  # type: ignore
+                header=self.MESSAGE.HEADER + ': ' + \
                 Color.GREEN + '[AfterProcessing etitles]' + Color.END,
                 separator=" :",
                 mode="debug",
