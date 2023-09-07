@@ -78,12 +78,13 @@ def get_data_files():
     data_files = []
     data_files.append((loc['bash'], files['bash']))
     data_files.append((loc['zsh'], files['zsh']))
+
     return data_files
 
 
 name = 'pydork'
-version = '1.1.6'
-release = '1.1.6'
+version = '1.1.7'
+release = '1.1.7'
 
 if __name__ == "__main__":
     setuptools.setup(
@@ -126,6 +127,7 @@ if __name__ == "__main__":
             'Programming Language :: Python :: 3.8',
             'Programming Language :: Python :: 3.9',
             'Programming Language :: Python :: 3.10',
+            'Programming Language :: Python :: 3.11',
             'License :: OSI Approved :: MIT License',
         ],
         data_files=get_data_files(),

@@ -579,7 +579,7 @@ class CommonEngine:
                 self.driver.execute_script(
                     "window.scrollTo(0,document.body.scrollHeight)"
                 )
-                time.sleep(3)
+                time.sleep(0.5)
 
         # 優先度2: Splash経由でのアクセス(Seleniumが有効になってない場合はこちら)
         elif self.USE_SPLASH:
