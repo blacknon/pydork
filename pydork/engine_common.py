@@ -575,11 +575,12 @@ class CommonEngine:
         if self.USE_SELENIUM:
             result = self.request_selenium(url, method=method, data=data)
 
-            for i in range(0, 10):
-                self.driver.execute_script(
-                    "window.scrollTo(0,document.body.scrollHeight)"
-                )
-                time.sleep(0.5)
+            # NOTE: seleniumでのブラウザスクロール. googleでの処理で不要になったため、ただ遅くなるだけで不便なので一旦コメントアウト.
+            # for i in range(0, 10):
+            #     self.driver.execute_script(
+            #         "window.scrollTo(0,document.body.scrollHeight)"
+            #     )
+            #     time.sleep(0.5)
 
         # 優先度2: Splash経由でのアクセス(Seleniumが有効になってない場合はこちら)
         elif self.USE_SPLASH:
