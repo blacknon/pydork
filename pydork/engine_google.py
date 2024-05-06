@@ -202,16 +202,16 @@ class Google(CommonEngine):
 
             # Selenium経由、かつFirefoxを使っている場合
             if self.USE_SELENIUM:
-                self.SOUP_SELECT_URL = '.yuRUbf > div > a'
-                self.SOUP_SELECT_TITLE = '.yuRUbf > div > a > .LC20lb'
-                self.SOUP_SELECT_TEXT = '.lEBKkf'
+                self.SOUP_SELECT_URL = '.yuRUbf > div > span > a'
+                self.SOUP_SELECT_TITLE = '.yuRUbf > div > span > a > h3'
+                self.SOUP_SELECT_TEXT = '.yXK7lf'
                 self.SOUP_SELECT_NEXT_URL = '.AaVjTc > tbody > tr > td > a'
 
             # Splash経由で通信している場合
             elif self.USE_SPLASH:
-                self.SOUP_SELECT_URL = '.yuRUbf > a'
-                self.SOUP_SELECT_TITLE = '.yuRUbf > a > .LC20lb'
-                self.SOUP_SELECT_TEXT = '.lEBKkf'
+                self.SOUP_SELECT_URL = '.yuRUbf > div > span > a.href'
+                self.SOUP_SELECT_TITLE = '.yuRUbf > div > span > a > h3'
+                self.SOUP_SELECT_TEXT = '.yXK7lf'
                 self.SOUP_SELECT_NEXT_URL = '.AaVjTc > tbody > tr > td > a'
 
             # TODO: SEARCH_NEXT_URLを書き換える
