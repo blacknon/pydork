@@ -4,17 +4,32 @@ PyDork
 Description
 -----------
 
-Scraping and listing text and image searches on Google, Bing,
-DuckDuckGo, Baidu, Yahoo japan.
+Scraping and listing text and image searches on **Google**, **Bing**,
+**DuckDuckGo**, **Baidu**, **Yahoo japan**.
 
 Install
 -------
 
 .. code:: bash
 
-   git clone https://github.com/blacknon/pydork
-   cd pydork
-   pip install ./
+   pip install pydork
+
+Build
+-----
+
+Documents
+~~~~~~~~~
+
+.. code:: bash
+
+   python setup.py build_sphinx
+
+Dockerimage
+~~~~~~~~~~~
+
+.. code:: bash
+
+   docker build -t "pydork" --progress=plain .
 
 How to use
 ----------
