@@ -13,7 +13,6 @@
 import requests
 import os
 import pickle
-import time
 
 # selenium driver auto install packages
 import chromedriver_autoinstaller
@@ -706,14 +705,35 @@ class CommonEngine:
             list: textの検索結果([xxx,xxx,xxx...])
         """
         # linkのurlを取得する
+        self.MESSAGE.print_text(
+            self.SOUP_SELECT_URL,  # type: ignore
+            header=self.MESSAGE.HEADER + ': ' + \
+            Color.GREEN + '[get_text_link.SOUP_SELECT_URL]' + Color.END,
+            separator=" :",
+            mode="debug",
+        )
         elements = soup.select(self.SOUP_SELECT_URL)
         elinks = [e['href'] for e in elements]
 
         # linkのtitleを取得する
+        self.MESSAGE.print_text(
+            self.SOUP_SELECT_TITLE,  # type: ignore
+            header=self.MESSAGE.HEADER + ': ' + \
+            Color.GREEN + '[get_text_link.SOUP_SELECT_TITLE]' + Color.END,
+            separator=" :",
+            mode="debug",
+        )
         elements = soup.select(self.SOUP_SELECT_TITLE)
         etitles = [e.text for e in elements]
 
         # linkのtextを取得する
+        self.MESSAGE.print_text(
+            self.SOUP_SELECT_TEXT,  # type: ignore
+            header=self.MESSAGE.HEADER + ': ' + \
+            Color.GREEN + '[get_text_link.SOUP_SELECT_TEXT]' + Color.END,
+            separator=" :",
+            mode="debug",
+        )
         elements = soup.select(self.SOUP_SELECT_TEXT)
         etext = [e.text for e in elements]
 

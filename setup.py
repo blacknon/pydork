@@ -27,7 +27,6 @@ except IOError:
 
 # 補完ファイルインストール用関数
 def get_data_files():
-
     # 補完ファイルのインストール先を取得する関数
     def get_completefile_install_location(shell):
         # pathのprefixを定義
