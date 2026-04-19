@@ -178,6 +178,10 @@ class Bing(CommonEngine):
         """
 
         if type == 'text':
+            links = self.get_text_links_with_fallback(url, html)
+            if links:
+                return links
+
             self.SOUP_SELECT_URL = 'h2 > a'
             self.SOUP_SELECT_TITLE = 'h2 > a'
             self.SOUP_SELECT_TEXT = 'li > div > p'
@@ -189,6 +193,95 @@ class Bing(CommonEngine):
         links = super().get_links(url, html, type)
 
         return links
+
+    def get_text_links_with_fallback(self, source_url: str, html: str):
+        soup = BeautifulSoup(html, 'lxml')
+
+        result_selectors = [
+            'li.b_algo',
+            'div.b_algo',
+            '.b_results > li',
+        ]
+        title_selectors = [
+            'h2 a',
+            'a h2',
+            'h2',
+        ]
+        link_selectors = [
+            'h2 a',
+            'a[href]',
+        ]
+        snippet_selectors = [
+            '.b_caption p',
+            '.b_lineclamp2',
+            '.b_paractl',
+            'p',
+        ]
+
+        links = []
+        seen = set()
+        for selector in result_selectors:
+            blocks = soup.select(selector)
+            for block in blocks:
+                title = self._extract_first_text(block, title_selectors)
+                href = self._extract_first_href(block, link_selectors)
+                text = self._extract_first_text(block, snippet_selectors)
+
+                if not title or not href:
+                    continue
+
+                key = (href, title)
+                if key in seen:
+                    continue
+
+                seen.add(key)
+                links.append(
+                    {
+                        'link': href,
+                        'title': title,
+                        'text': text,
+                        'source_url': source_url,
+                    }
+                )
+
+            if links:
+                break
+
+        if not links:
+            return links
+
+        raw_links = [item['link'] for item in links]
+        raw_titles = [item['title'] for item in links]
+        raw_texts = [item.get('text', '') for item in links]
+        raw_links, raw_titles, raw_texts = self.processings_elist(
+            raw_links, raw_titles, raw_texts
+        )
+
+        return self.create_text_links(source_url, raw_links, raw_titles, raw_texts)
+
+    def _extract_first_text(self, block, selectors: list):
+        for selector in selectors:
+            element = block.select_one(selector)
+            if element is None:
+                continue
+
+            text = element.get_text(" ", strip=True)
+            if text:
+                return text
+
+        return ''
+
+    def _extract_first_href(self, block, selectors: list):
+        for selector in selectors:
+            element = block.select_one(selector)
+            if element is None:
+                continue
+
+            href = element.get('href', '').strip()
+            if href:
+                return href
+
+        return ''
 
     # 画像検索ページの検索結果(links(list()))を生成するfunction
     def get_image_links(self, soup: BeautifulSoup):
@@ -316,7 +409,12 @@ async def resolv_links(loop: asyncio.AbstractEventLoop, session: requests.Sessio
         return task
 
     tasks = []
+    indexes = []
     for link in links:
+        indexes.append(None)
+    resolved_links = list(links)
+
+    for index, link in enumerate(links):
         # urlをパース
         url = parse.urlparse(link)
 
@@ -324,10 +422,18 @@ async def resolv_links(loop: asyncio.AbstractEventLoop, session: requests.Sessio
         if url.netloc == 'www.bing.com' and url.path == '/ck/a':
             task = req(session, link)
             tasks.append(task)
+            indexes[index] = len(tasks) - 1
+
+    if not tasks:
+        return resolved_links
 
     data = await asyncio.gather(*tasks)
 
-    return data
+    for index, task_index in enumerate(indexes):
+        if task_index is not None:
+            resolved_links[index] = data[task_index]
+
+    return resolved_links
 
 
 def resolv_url(session: requests.Session, url: str):

@@ -10,15 +10,11 @@
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
 #
-import os
 import sys
-
-
 import pathlib
 
-
-path = pathlib.Path("../../pydork")
-sys.path.insert(0, os.path.abspath(path))  # '..\\..\\Resources'))
+PROJECT_ROOT = pathlib.Path(__file__).resolve().parent.parent
+sys.path.insert(0, str(PROJECT_ROOT))
 
 
 # -- Project information -----------------------------------------------------
@@ -28,7 +24,7 @@ copyright = '2022, blacknon'
 author = 'blacknon'
 
 # The full version, including alpha/beta/rc tags
-release = '1.1.0'
+release = '1.1.7'
 
 
 # -- General configuration ---------------------------------------------------

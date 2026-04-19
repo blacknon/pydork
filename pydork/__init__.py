@@ -9,7 +9,7 @@ from .sub_commands import run_subcommand
 from .engine import ENGINES
 from . import messages
 
-from pkg_resources import get_distribution
+from importlib.metadata import PackageNotFoundError, version
 from datetime import datetime
 
 import copy
@@ -19,7 +19,10 @@ import argparse
 
 
 # version (setup.pyから取得してくる)
-__version__ = get_distribution('pydork').version
+try:
+    __version__ = version('pydork')
+except PackageNotFoundError:
+    __version__ = '0.0.0'
 
 
 # main

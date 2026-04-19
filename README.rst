@@ -12,7 +12,7 @@ Install
 
 .. code:: bash
 
-   pip install pydork
+   python3 -m pip install pydork
 
 Build
 -----
@@ -22,7 +22,8 @@ Documents
 
 .. code:: bash
 
-   python setup.py build_sphinx
+   python3 -m pip install -e ".[docs]"
+   python3 -m sphinx -b html docs docs/_build/html
 
 Dockerimage
 ~~~~~~~~~~~
@@ -132,3 +133,15 @@ python library
 
    search_engine.set('google')
    search_result = search_engine.search('final fantasy')
+   image_result = search_engine.search('final fantasy', search_type='image')
+
+Test
+----
+
+Live search tests are disabled by default because they depend on external services and browser availability.
+
+.. code:: bash
+
+   python3 -m unittest discover -v
+   PYDORK_RUN_LIVE_TESTS=1 python3 -m unittest pydork.test_engine -v
+   PYDORK_RUN_SELENIUM_TESTS=1 python3 -m unittest pydork.test_engine_selenium -v

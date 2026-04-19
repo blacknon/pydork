@@ -155,6 +155,10 @@ class Baidu(CommonEngine):
         links = []
 
         if type == 'text':
+            links = self.get_text_links_with_fallback(url, html)
+            if links:
+                return links
+
             # Splash経由で通信している場合
             self.SOUP_SELECT_URL = '.tts-title > a'
             self.SOUP_SELECT_TITLE = '.tts-title > a'
@@ -182,7 +186,7 @@ class Baidu(CommonEngine):
             # json load
             try:
                 json_data = json.loads(html, strict=False)
-            except Exception as e:
+            except json.JSONDecodeError as e:
                 print(e, file=sys.stderr)
                 return links
 
@@ -218,6 +222,96 @@ class Baidu(CommonEngine):
 
         return links
 
+    def get_text_links_with_fallback(self, source_url: str, html: str):
+        soup = BeautifulSoup(html, 'lxml')
+
+        result_selectors = [
+            '.result',
+            '.c-container',
+            '.xpath-log',
+        ]
+        title_selectors = [
+            '.tts-title',
+            'h3',
+            'h3 a',
+        ]
+        link_selectors = [
+            '.tts-title a',
+            'h3 a',
+            'a[href]',
+        ]
+        snippet_selectors = [
+            '.c-gap-top-small',
+            '.content-right_8Zs40',
+            '.c-span-last p',
+            '.c-color-text',
+        ]
+
+        links = []
+        seen = set()
+        for selector in result_selectors:
+            blocks = soup.select(selector)
+            for block in blocks:
+                title = self._extract_first_text(block, title_selectors)
+                href = self._extract_first_href(block, link_selectors)
+                text = self._extract_first_text(block, snippet_selectors)
+
+                if not title or not href:
+                    continue
+
+                key = (href, title)
+                if key in seen:
+                    continue
+
+                seen.add(key)
+                links.append(
+                    {
+                        'link': href,
+                        'title': title,
+                        'text': text,
+                        'source_url': source_url,
+                    }
+                )
+
+            if links:
+                break
+
+        if not links:
+            return links
+
+        raw_links = [item['link'] for item in links]
+        raw_titles = [item['title'] for item in links]
+        raw_texts = [item.get('text', '') for item in links]
+        raw_links, raw_titles, raw_texts = self.processings_elist(
+            raw_links, raw_titles, raw_texts
+        )
+
+        return self.create_text_links(source_url, raw_links, raw_titles, raw_texts)
+
+    def _extract_first_text(self, block, selectors: list):
+        for selector in selectors:
+            element = block.select_one(selector)
+            if element is None:
+                continue
+
+            text = element.get_text(" ", strip=True)
+            if text:
+                return text
+
+        return ''
+
+    def _extract_first_href(self, block, selectors: list):
+        for selector in selectors:
+            element = block.select_one(selector)
+            if element is None:
+                continue
+
+            href = element.get('href', '').strip()
+            if href:
+                return href
+
+        return ''
+
     def get_suggest_list(self, suggests: list, char: str, html: str):
         """get_suggest_list
 
@@ -234,10 +328,15 @@ class Baidu(CommonEngine):
 
         try:
             data = json.loads(html)
-        except Exception:
+        except json.JSONDecodeError:
             soup = BeautifulSoup(html, "lxml")
             json_data = soup.select_one('html > body')
-            data = json.loads(json_data.text)
+            if json_data is None or json_data.text is None or json_data.text.strip() == '':
+                return suggests
+            try:
+                data = json.loads(json_data.text)
+            except json.JSONDecodeError:
+                return suggests
 
         if 'g' in data:
             suggests[char if char == '' else char[-1]
@@ -318,13 +417,24 @@ async def resolv_links(loop: asyncio.AbstractEventLoop, session: requests.Sessio
         return task
 
     tasks = []
-    for link in links:
+    indexes = []
+    resolved_links = list(links)
+
+    for index, link in enumerate(links):
         task = req(session, link)
         tasks.append(task)
+        indexes.append(index)
+
+    if not tasks:
+        return resolved_links
 
     data = await asyncio.gather(*tasks)
 
-    return data
+    for task_index, index in enumerate(indexes):
+        if data[task_index]:
+            resolved_links[index] = data[task_index]
+
+    return resolved_links
 
 
 def resolv_url(session: requests.Session, url: str):
@@ -342,11 +452,13 @@ def resolv_url(session: requests.Session, url: str):
         try:
             res_header = session.head(url, allow_redirects=False).headers
         except requests.RequestException:
-            continue
+            return url
         except ConnectionError:
-            continue
+            return url
+        except Exception:
+            return url
         else:
-            url = res_header['Location']
+            url = res_header.get('Location', url)
             break
 
     return url

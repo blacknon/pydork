@@ -175,52 +175,137 @@ class Yahoo(CommonEngine):
 
         if type == 'text':
             if self.USE_SPLASH or self.USE_SELENIUM:
-                self.SOUP_SELECT_JSON = '#__NEXT_DATA__'
-                self.SOUP_SELECT_IMAGE = '.rg_meta.notranslate'
-                self.SOUP_SELECT_TEXT = ''
+                links = self.get_text_links_from_next_data(url, html)
 
-                # Yahooの場合、jsonから検索結果を取得する
-                soup = BeautifulSoup(html, 'lxml')
-                elements = soup.select(self.SOUP_SELECT_JSON)
-                element = elements[0].string
-
-                # debug
-                if self.IS_DEBUG:
-                    print(Color.PURPLE + '[JsonElement]' + Color.END,
-                          file=sys.stderr)
-                    print(Color.PURPLE + element + Color.END,
-                          file=sys.stderr)  # type: ignore
-
-                # jsonからデータを抽出　
-                j = json.loads(element)  # type: ignore
-
-                # debug
-                if self.IS_DEBUG:
-                    print(Color.PURPLE + '[Json]' + Color.END, file=sys.stderr)
-                    print(Color.PURPLE + json.dumps(j) + Color.END,
-                          file=sys.stderr)
-
-                jd = j['props']['initialProps']['pageProps']['pageData']['algos']
-
-                elinks = [e['url'] for e in jd]
-                etitles = [e['title'] for e in jd]
-                etexts = [e['description'] for e in jd]
-
-                links = self.create_text_links(url, elinks, etitles, etexts)
+                if not links:
+                    links = self.get_text_links_from_html(url, html)
 
             else:
-                self.SOUP_SELECT_URL = '.sw-Card__headerSpace > .sw-Card__title > a'
-                self.SOUP_SELECT_TITLE = '.sw-Card__headerSpace > .sw-Card__title > a > h3'
-                self.SOUP_SELECT_TEXT = '.sw-Card__floatContainer > .sw-Card__summary'
-
-                # CommonEngineの処理を呼び出す
-                links = super().get_links(url, html, type)
+                links = self.get_text_links_from_html(url, html)
 
         elif type == 'image':
             # CommonEngineの処理を呼び出す
             links = super().get_links(url, html, type)
 
         return links
+
+    def get_text_links_from_next_data(self, source_url: str, html: str):
+        soup = BeautifulSoup(html, 'lxml')
+        element = soup.select_one('#__NEXT_DATA__')
+        if element is None or element.string is None:
+            return []
+
+        if self.IS_DEBUG:
+            print(Color.PURPLE + '[JsonElement]' + Color.END, file=sys.stderr)
+            print(Color.PURPLE + element.string + Color.END, file=sys.stderr)
+
+        try:
+            data = json.loads(element.string)
+        except json.JSONDecodeError:
+            return []
+
+        if self.IS_DEBUG:
+            print(Color.PURPLE + '[Json]' + Color.END, file=sys.stderr)
+            print(Color.PURPLE + json.dumps(data) + Color.END, file=sys.stderr)
+
+        records = self.extract_next_data_algos(data)
+        if not records:
+            return []
+
+        elinks = [entry['url'] for entry in records if 'url' in entry]
+        etitles = [entry['title'] for entry in records if 'title' in entry]
+        etexts = [entry.get('description', '') for entry in records if 'url' in entry]
+
+        return self.create_text_links(source_url, elinks, etitles, etexts)
+
+    def extract_next_data_algos(self, data: dict):
+        try:
+            return data['props']['initialProps']['pageProps']['pageData']['algos']
+        except KeyError:
+            return []
+
+    def get_text_links_from_html(self, source_url: str, html: str):
+        soup = BeautifulSoup(html, 'lxml')
+        elinks = [e.get('href', '').strip() for e in soup.select('.sw-Card__headerSpace > .sw-Card__title > a')]
+        elinks = [href for href in elinks if href]
+        etitles = [e.get_text(" ", strip=True) for e in soup.select('.sw-Card__headerSpace > .sw-Card__title > a > h3')]
+        etexts = [e.get_text(" ", strip=True) for e in soup.select('.sw-Card__floatContainer > .sw-Card__summary')]
+
+        if elinks:
+            return self.create_text_links(source_url, elinks, etitles, etexts)
+
+        result_selectors = [
+            '.sw-Card',
+            '.algo',
+        ]
+        title_selectors = [
+            '.sw-Card__title h3',
+            'h3',
+        ]
+        link_selectors = [
+            '.sw-Card__title a',
+            'a[href]',
+        ]
+        snippet_selectors = [
+            '.sw-Card__summary',
+            '.sw-Card__floatContainer',
+            'p',
+        ]
+
+        links = []
+        seen = set()
+        for selector in result_selectors:
+            blocks = soup.select(selector)
+            for block in blocks:
+                title = self._extract_first_text(block, title_selectors)
+                href = self._extract_first_href(block, link_selectors)
+                text = self._extract_first_text(block, snippet_selectors)
+
+                if not title or not href:
+                    continue
+
+                key = (href, title)
+                if key in seen:
+                    continue
+
+                seen.add(key)
+                links.append(
+                    {
+                        'link': href,
+                        'title': title,
+                        'text': text,
+                        'source_url': source_url,
+                    }
+                )
+
+            if links:
+                break
+
+        return links
+
+    def _extract_first_text(self, block, selectors: list):
+        for selector in selectors:
+            element = block.select_one(selector)
+            if element is None:
+                continue
+
+            text = element.get_text(" ", strip=True)
+            if text:
+                return text
+
+        return ''
+
+    def _extract_first_href(self, block, selectors: list):
+        for selector in selectors:
+            element = block.select_one(selector)
+            if element is None:
+                continue
+
+            href = element.get('href', '').strip()
+            if href:
+                return href
+
+        return ''
 
     # 画像検索ページの検索結果(links(list()))を生成するfunction
     def get_image_links(self, soup: BeautifulSoup):
@@ -238,7 +323,7 @@ class Yahoo(CommonEngine):
 
         try:
             data = json.loads(soup.text)
-        except Exception:
+        except json.JSONDecodeError:
             return result
 
         for d in data['algos']:

@@ -39,11 +39,11 @@ class Color:
     GRAY = '\033[1;30m'
 
     # 文字効果
-    BOLD = '\038[1m'
-    ITALIC = '\038[3m'
+    BOLD = '\033[1m'
+    ITALIC = '\033[3m'
     UNDERLINE = '\033[4m'
     INVISIBLE = '\033[08m'
-    REVERCE = '\033[07m'
+    REVERSE = '\033[07m'
 
     # 効果を終了
     END = '\033[0m'
@@ -71,7 +71,7 @@ class Color:
 
         # is_reverseが有効な場合、色の反転をする
         if is_reverse:
-            text = self.REVERCE + text + self.END
+            text = self.REVERSE + text + self.END
 
         # is_italicが有効な場合、Italicにする
         if is_italic:
@@ -233,7 +233,7 @@ class Message:
             if header is None:
                 header = self.HEADER
 
-            header = Color.REVERCE + \
+            header = Color.REVERSE + \
                 self.replace(header) + Color.END
 
         # TODO: 正規表現で、付きの箇所を抜き出すような処理を追加で入れる

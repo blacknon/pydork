@@ -19,7 +19,7 @@ from time import sleep
 from json.decoder import JSONDecodeError
 from urllib import parse
 from lxml import etree
-# from bs4 import BeautifulSoup
+from bs4 import BeautifulSoup
 
 from .common import Color
 from .recaptcha import TwoCaptcha
@@ -74,6 +74,7 @@ class Google(CommonEngine):
         if type == 'text':
             # 検索用urlを指定
             search_url = self.SEARCH_URL
+            self.SEARCH_NEXT_URL = None
 
             # 検索パラメータの設定
             url_param = {
@@ -105,14 +106,20 @@ class Google(CommonEngine):
                 None
 
             page = 0
+            next_url = None
             while True:
-                # parameterにページを開始する番号を指定
-                url_param['start'] = str(page * 100)
-                params = parse.urlencode(url_param)
-
-                target_url = search_url + '?' + params
+                if next_url is not None:
+                    target_url = next_url
+                else:
+                    # parameterにページを開始する番号を指定
+                    url_param['start'] = str(page * 100)
+                    params = parse.urlencode(url_param)
+                    target_url = search_url + '?' + params
 
                 yield 'GET', target_url, None
+
+                next_url = self.SEARCH_NEXT_URL
+                self.SEARCH_NEXT_URL = None
                 page += 1
 
         elif type == 'image':
@@ -194,6 +201,12 @@ class Google(CommonEngine):
 
         # テキスト検索の場合
         if type == 'text':
+            self.SEARCH_NEXT_URL = self.get_nextpage_url(url, html)
+
+            links = self.get_text_links_with_fallback(url, html)
+            if links:
+                return links
+
             # request or seleniumの定義
             self.SOUP_SELECT_URL = '#main > div > div > .kCrYT > a'
             self.SOUP_SELECT_TITLE = '#main > div > div > .kCrYT > a > h3 > div'
@@ -214,9 +227,6 @@ class Google(CommonEngine):
                 self.SOUP_SELECT_TEXT = '.yXK7lf'
                 self.SOUP_SELECT_NEXT_URL = '.AaVjTc > tbody > tr > td > a'
 
-            # TODO: SEARCH_NEXT_URLを書き換える
-            # self.get_nextpage_url(html)
-
             # CommonEngineの処理を呼び出す
             links = super().get_links(url, html, type)
 
@@ -225,6 +235,134 @@ class Google(CommonEngine):
             links = self.get_image_links(html)
 
         return links
+
+    def get_text_links_with_fallback(self, source_url: str, html: str):
+        """Parse Google text search results with multiple layout fallbacks."""
+
+        soup = BeautifulSoup(html, 'lxml')
+
+        # Prefer container-based extraction so link, title, and snippet stay aligned
+        # even when Google changes class names for one of the fields.
+        result_selectors = [
+            'div.g',
+            'div.Gx5Zad',
+            'div.MjjYud',
+        ]
+        title_selectors = [
+            'h3',
+            '.LC20lb',
+            '.DKV0Md',
+            '.vvjwJb',
+        ]
+        link_selectors = [
+            '.yuRUbf a',
+            'a[href]',
+        ]
+        snippet_selectors = [
+            '.VwiC3b',
+            '.yXK7lf',
+            '.MUxGbd.yDYNvb.lyLwlc',
+            '.BNeawe.s3v9rd.AP7Wnd',
+            '.GI74Re.nDgy9d',
+        ]
+
+        links = []
+        seen = set()
+        for selector in result_selectors:
+            blocks = soup.select(selector)
+            for block in blocks:
+                title = self._extract_first_text(block, title_selectors)
+                href = self._extract_first_href(block, link_selectors)
+                text = self._extract_first_text(block, snippet_selectors)
+
+                if not title or not href:
+                    continue
+
+                parsed = parse.urlparse(href)
+                if parsed.scheme not in ('http', 'https') and not href.startswith('/url?'):
+                    continue
+
+                key = (href, title)
+                if key in seen:
+                    continue
+
+                seen.add(key)
+                links.append(
+                    {
+                        'link': href,
+                        'title': title,
+                        'text': text,
+                        'source_url': source_url,
+                    }
+                )
+
+            if links:
+                break
+
+        if not links:
+            return links
+
+        # Reuse the existing post-processing for Google redirect URLs and dedup.
+        raw_links = [item['link'] for item in links]
+        raw_titles = [item['title'] for item in links]
+        raw_texts = [item.get('text', '') for item in links]
+        raw_links, raw_titles, raw_texts = self.processings_elist(
+            raw_links, raw_titles, raw_texts
+        )
+
+        return self.create_text_links(source_url, raw_links, raw_titles, raw_texts)
+
+    def _extract_first_text(self, block, selectors: list):
+        for selector in selectors:
+            element = block.select_one(selector)
+            if element is None:
+                continue
+
+            text = element.get_text(" ", strip=True)
+            if text:
+                return text
+
+        return ''
+
+    def _extract_first_href(self, block, selectors: list):
+        for selector in selectors:
+            element = block.select_one(selector)
+            if element is None:
+                continue
+
+            href = element.get('href', '').strip()
+            if href:
+                return href
+
+        return ''
+
+    def get_nextpage_url(self, source_url: str, html: str):
+        soup = BeautifulSoup(html, 'lxml')
+        selectors = [
+            'a#pnnext',
+            'a[aria-label="Next page"]',
+            'a[aria-label="次のページ"]',
+            '.AaVjTc a',
+            'td a#pnnext',
+        ]
+
+        for selector in selectors:
+            element = soup.select_one(selector)
+            href = self._get_href_from_element(element)
+            if href:
+                return parse.urljoin(source_url, href)
+
+        return None
+
+    def _get_href_from_element(self, element):
+        if element is None:
+            return ''
+
+        href = element.get('href', '').strip()
+        if href and href != '#':
+            return href
+
+        return ''
 
     def get_image_links(self, html: str):
         """get_image_links
@@ -323,8 +461,8 @@ class Google(CommonEngine):
             parsed = parse.urlparse(elink)
             parsed_query = parse.parse_qs(parsed.query)
 
-            if 'url' in parsed_query and elink[0] == '/':
-                parsed_q = parsed_query['url']
+            if elink and elink[0] == '/' and ('url' in parsed_query or 'q' in parsed_query):
+                parsed_q = parsed_query.get('url', parsed_query.get('q', []))
                 if len(parsed_q) > 0:
                     new_elink = parsed_q[0]
                     new_elinks.append(new_elink)

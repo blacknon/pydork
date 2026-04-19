@@ -83,28 +83,14 @@ class DuckDuckGo(CommonEngine):
         }
 
         try:
-            # 前処理リクエスのセッションを生成する
-            pre_params = parse.urlencode(pre_param)
-            pre_url = self.PRE_URL + '?' + pre_params
-
-            # 前処理リクエスト1を実行
-            self.get_result('https://duckduckgo.com/?t=h_')
-
-            # 待機時間を入れる
-            sleep(1)
-
-            # 前処理リクエスト2を実行
-            pre_html = self.get_result(pre_url)
-            sleep(1)
-
-            r = re.findall(
-                r"(?<=vqd\=)[0-9-]+", pre_html
+            vqd = self.fetch_vqd(keyword)
+        except ValueError as exc:
+            self.MESSAGE.print_text(
+                str(exc),
+                mode='warn',
+                header=self.NAME,
+                separator=': ',
             )
-
-            # get vqd
-            vqd = r[0]
-
-        except Exception:
             return
 
         if type == 'text':
@@ -201,9 +187,13 @@ class DuckDuckGo(CommonEngine):
         vqd = ""
 
         if type == 'text':
+            links = self.get_text_links_with_fallback(source_url, html)
+            if links:
+                return links
+
             # 加工してdictとして扱えるようにする
             r = re.findall(
-                r"DDG\.pageLayout\.load\(\'d\',(.+)\]\)\;", html
+                r"DDG\.pageLayout\.load\(\'d\',(.+)\]\)\;", html, re.DOTALL
             )
 
             try:
@@ -290,3 +280,77 @@ class DuckDuckGo(CommonEngine):
                                                       for e in data]
 
         return suggests
+
+    def fetch_vqd(self, keyword: str):
+        pre_params = parse.urlencode({
+            'q': keyword,
+            't': 'h_',
+        })
+        pre_url = self.PRE_URL + '?' + pre_params
+
+        self.get_result('https://duckduckgo.com/?t=h_')
+        sleep(1)
+        pre_html = self.get_result(pre_url)
+        sleep(1)
+
+        vqd = self.extract_vqd(pre_html)
+        if not vqd:
+            raise ValueError('failed to extract DuckDuckGo vqd token')
+
+        return vqd
+
+    def extract_vqd(self, html: str):
+        patterns = [
+            r"(?<=vqd=)[0-9-]+",
+            r"vqd=['\"]([0-9-]+)['\"]",
+            r"\"vqd\"\\s*:\\s*\"([0-9-]+)\"",
+        ]
+
+        for pattern in patterns:
+            matched = re.findall(pattern, html)
+            if matched:
+                return matched[0]
+
+        return ''
+
+    def get_text_links_with_fallback(self, source_url: str, html: str):
+        r = re.findall(
+            r"DDG\.pageLayout\.load\(\'d\',(.+)\]\)\;",
+            html,
+            re.DOTALL
+        )
+
+        if not r:
+            return []
+
+        try:
+            r_dict = json.loads(r[0] + "]")
+        except (IndexError, json.JSONDecodeError):
+            return []
+
+        return self._build_text_links(source_url, r_dict)
+
+    def _build_text_links(self, source_url: str, records: list):
+        links = []
+        next_url = ""
+
+        for record in records:
+            if "u" in record and "s" in record:
+                links.append(
+                    {
+                        "link": record["u"],
+                        "title": BeautifulSoup(record["t"], "lxml").text,
+                        "text": BeautifulSoup(record["a"], "lxml").text,
+                        "source_url": source_url,
+                    }
+                )
+            elif "n" in record:
+                base_uri = '{uri.scheme}://{uri.netloc}'.format(
+                    uri=parse.urlparse(self.SEARCH_URL)
+                )
+                next_url = base_uri + record["n"]
+
+        if next_url != "":
+            self.next_url = next_url
+
+        return links

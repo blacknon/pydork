@@ -55,7 +55,7 @@ class SearchEngine:
     """
 
     def __init__(self):
-        None
+        self.ENGINE = None
 
     # どの検索エンジンを使用するか指定する関数
     def set(self, engine: str):
@@ -67,7 +67,6 @@ class SearchEngine:
             engine (str): Specify the search engine to use for the search (see const ENGINES)
         """
 
-        # TODO: 値チェックして、許可した値以外はエラーにする
         if engine == 'baidu':
             self.ENGINE = Baidu()
 
@@ -84,7 +83,11 @@ class SearchEngine:
             self.ENGINE = Yahoo()
 
         else:
-            raise Exception('Error!')
+            raise ValueError(
+                "unsupported engine: {0} (supported: {1})".format(
+                    engine, ", ".join(ENGINES)
+                )
+            )
 
         self.IS_COLOR = False
 
@@ -304,10 +307,10 @@ class SearchEngine:
         Args:
             verify (bool): bool.
         """
-        self.ENGINE.set_ignore_ssl = verify  # type: ignore
+        self.ENGINE.set_ignore_ssl(verify)  # type: ignore
 
     # 検索を行う
-    def search(self, keyword: str, search_type='text', maximum=100):
+    def search(self, keyword: str, search_type='text', maximum=100, **kwargs):
         """search
 
         Search with a search engine.
@@ -320,6 +323,25 @@ class SearchEngine:
         Returns:
             [list]: [{'link', 'http://...', 'title': 'hogehoge...'}, {'link': '...', 'title': '...'}, ... ]
         """
+
+        # Keep backward compatibility with the historical public API.
+        legacy_type = kwargs.pop('type', None)
+        if legacy_type is not None:
+            search_type = legacy_type
+
+        if kwargs:
+            raise TypeError(
+                "unexpected keyword arguments: {0}".format(
+                    ", ".join(sorted(kwargs.keys()))
+                )
+            )
+
+        if search_type not in ('text', 'image'):
+            raise ValueError(
+                "unsupported search type: {0} (supported: text, image)".format(
+                    search_type
+                )
+            )
 
         # ENGINE.MESSAGEへis_command/is_debugを渡す
         self.MESSAGE.set_is_command(self.ENGINE.IS_COMMAND)
@@ -362,7 +384,7 @@ class SearchEngine:
             # リクエスト先のurlを取得
             try:
                 method, url, data = next(gen_url)
-            except Exception:
+            except (StopIteration, TypeError):
                 break
 
             # debug

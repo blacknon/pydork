@@ -14,14 +14,17 @@
 # TODO: splash/selenium経由での通信のテストも追加する(dockerでのコンテナ環境が前提になると思われる)
 
 
+import os
 import unittest
 
 from .engine import SearchEngine
 
 # 変数
 SEARCH_TEXT = 'Linux'
+RUN_LIVE_TESTS = os.getenv('PYDORK_RUN_LIVE_TESTS') == '1'
 
 
+@unittest.skipUnless(RUN_LIVE_TESTS, 'set PYDORK_RUN_LIVE_TESTS=1 to run live search tests')
 class SearchEngineTestCase(unittest.TestCase):
     def setUp(self):
         """setUp

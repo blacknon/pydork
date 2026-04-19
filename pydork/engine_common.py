@@ -10,6 +10,7 @@
     * SearchEngine Classから呼び出す、各検索エンジンで共通の処理を保持させる継承用Classである `CommonEngine` を持つモジュール.
 """
 
+import json
 import requests
 import os
 import pickle
@@ -27,6 +28,7 @@ from selenium.webdriver.chrome.options import Options as ChromeOptions
 from selenium.webdriver.firefox.options import Options as FirefoxOptions
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
+from selenium.common.exceptions import WebDriverException
 
 from urllib import parse
 from fake_useragent import UserAgent
@@ -128,7 +130,7 @@ class CommonEngine:
                         elif browser == 'firefox':
                             user_agent = ua.chrome
 
-                except Exception:
+                except (AttributeError, OSError, TypeError, ValueError):
                     user_agent = 'Mozilla/5.0 (Linux; Android 10; SM-A205U) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/92.0.4515.131 Mobile Safari/537.36.'
 
         self.USER_AGENT = user_agent
@@ -191,6 +193,63 @@ class CommonEngine:
     def set_ignore_ssl(self, verify: bool):
         self.IGNORE_SSL_VERIFY = verify
 
+    def _print_warning(self, text: str):
+        if hasattr(self, 'MESSAGE'):
+            self.MESSAGE.print_text(
+                text,
+                mode='warn',
+                header=self.NAME,
+                separator=': ',
+            )
+
+    def _cookiejar_to_list(self, cookiejar):
+        cookies = []
+        for cookie in cookiejar:
+            cookies.append(
+                {
+                    'name': cookie.name,
+                    'value': cookie.value,
+                    'domain': cookie.domain,
+                    'path': cookie.path,
+                    'secure': cookie.secure,
+                    'expires': cookie.expires,
+                }
+            )
+
+        return cookies
+
+    def _serialize_cookies(self, cookies):
+        if cookies is None:
+            return []
+
+        if isinstance(cookies, list):
+            return cookies
+
+        return self._cookiejar_to_list(cookies)
+
+    def _load_cookies_from_file(self):
+        with open(self.COOKIE_FILE, 'rb') as f:
+            raw = f.read()
+
+        if not raw:
+            return []
+
+        try:
+            data = json.loads(raw.decode('utf-8'))
+            if isinstance(data, list):
+                return data
+            return []
+        except (UnicodeDecodeError, json.JSONDecodeError):
+            pass
+
+        try:
+            data = pickle.loads(raw)
+            self._print_warning('legacy pickle cookie file detected; rewriting as JSON on next save')
+            return self._serialize_cookies(data)
+        except (pickle.PickleError, AttributeError, EOFError, TypeError, ValueError):
+            self._print_warning('failed to load cookie file')
+            return []
+
     # cookieをcookiefileから取得する
     def read_cookies(self):
         """read_cookies
@@ -212,7 +271,7 @@ class CommonEngine:
         # cookieファイルのサイズが0以上の場合
         if file_size > 0:
             # cookie fileからcookieの取得
-            cookies = pickle.load(open(self.COOKIE_FILE, "rb"))
+            cookies = self._load_cookies_from_file()
 
             # seleniumを使う場合
             if self.USE_SELENIUM:
@@ -223,8 +282,8 @@ class CommonEngine:
                 for cookie in cookies:
                     try:
                         self.driver.add_cookie(cookie)
-                    except Exception:
-                        pass
+                    except WebDriverException:
+                        continue
 
             # splashを使う場合
             elif self.USE_SPLASH:
@@ -263,8 +322,9 @@ class CommonEngine:
             cookies = self.session.cookies
 
         # cookieを書き込み
-        with open(self.COOKIE_FILE, 'wb') as f:
-            pickle.dump(cookies, f)
+        serialized_cookies = self._serialize_cookies(cookies)
+        with open(self.COOKIE_FILE, 'w', encoding='utf-8') as f:
+            json.dump(serialized_cookies, f, ensure_ascii=False, indent=2)
 
     # seleniumのOptionsを作成
     def create_selenium_options(self):
@@ -316,8 +376,13 @@ class CommonEngine:
 
             try:
                 chromedriver_autoinstaller.install()
-            except Exception:
-                pass
+            except (OSError, RuntimeError):
+                self.MESSAGE.print_text(
+                    'failed to auto-install chromedriver, trying existing driver',
+                    mode='warn',
+                    header=self.NAME,
+                    separator=': ',
+                )
 
             self.driver = Chrome(options=options)
 
@@ -367,8 +432,13 @@ class CommonEngine:
 
             try:
                 geckodriver_autoinstaller.install()
-            except Exception:
-                pass
+            except (OSError, RuntimeError):
+                self.MESSAGE.print_text(
+                    'failed to auto-install geckodriver, trying existing driver',
+                    mode='warn',
+                    header=self.NAME,
+                    separator=': ',
+                )
             self.driver = Firefox(options=options, firefox_profile=profile)
 
         # User agentを指定させる
