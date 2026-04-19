@@ -59,25 +59,26 @@ jobs:
 
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v1
+      - uses: actions/checkout@v4
 
       - name: Setup Python
-        uses: actions/setup-python@v2
+        uses: actions/setup-python@v5
         with:
           python-version: '3.9'
           architecture: 'x64'
+          cache: 'pip'
 
       - name: Get Python version
         run: python -V
 
       - name: Install Selenium
-        run: pip install get-chrome-driver get-gecko-driver --upgrade
+        run: python -m pip install --upgrade pip get-chrome-driver get-gecko-driver
 
       - name: Install Sphinx
-        run: pip install sphinx sphinx-rtd-theme sphinx-autobuild
+        run: python -m pip install sphinx sphinx-rtd-theme sphinx-autobuild
 
       - name: Install dependencies
-        run: pip install ./
+        run: python -m pip install ./
 
       - name: Run Test Text Search
         run: python -m unittest pydork.test_engine_selenium.SearchEngineTestCaseWithSelenium.${{ matrix.search_text }} -v
