@@ -28,10 +28,11 @@ from .engine_bing import Bing
 from .engine_duckduckgo import DuckDuckGo
 from .engine_google import Google
 from .engine_yahoo import Yahoo
+from .engine_yandex import Yandex
 
 
 # 対応する検索エンジンのリスト
-ENGINES = ['baidu', 'bing', 'duckduckgo', 'google', 'yahoo']
+ENGINES = ['baidu', 'bing', 'duckduckgo', 'google', 'yahoo', 'yandex']
 
 
 # 各種SearchEngineへの処理をまとめるWrapper用Class
@@ -81,6 +82,9 @@ class SearchEngine:
 
         elif engine == 'yahoo':
             self.ENGINE = Yahoo()
+
+        elif engine == 'yandex':
+            self.ENGINE = Yandex()
 
         else:
             raise ValueError(

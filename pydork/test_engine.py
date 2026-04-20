@@ -517,3 +517,71 @@ class SearchEngineTestCase(unittest.TestCase):
 
         print("{} count.".format(len(data)))
         self.assertNotEqual(0, len(data))
+
+    # ==========
+    # Yandex
+    # ==========
+    def test_yandex_text_search(self):
+        print('Test Yandex text search.')
+
+        self.search_engine.set('yandex')
+        self.common_settings()
+
+        data = self.search_engine.search(SEARCH_TEXT, maximum=30)
+
+        print("{} count.".format(len(data)))
+        self.assertNotEqual(0, len(data))
+
+    def test_yandex_image_search(self):
+        print('Test Yandex image search.')
+
+        self.search_engine.set('yandex')
+        self.common_settings()
+
+        data = self.search_engine.search(SEARCH_TEXT, type='image', maximum=30)
+
+        print("{} count.".format(len(data)))
+        self.assertNotEqual(0, len(data))
+
+    def test_yandex_suggest(self):
+        print('Test Yandex text suggest.')
+
+        self.search_engine.set('yandex')
+        self.common_settings()
+
+        data = self.search_engine.suggest(SEARCH_TEXT)
+
+        print("{} count.".format(len(data)))
+        self.assertNotEqual(0, len(data))
+
+    def test_yandex_suggest_with_jap(self):
+        print('Test Yandex text suggest with jap.')
+
+        self.search_engine.set('yandex')
+        self.common_settings()
+
+        data = self.search_engine.suggest(SEARCH_TEXT, jap=True)
+
+        print("{} count.".format(len(data)))
+        self.assertNotEqual(0, len(data))
+
+    def test_yandex_suggest_with_alph(self):
+        print('Test Yandex text suggest with alph.')
+
+        self.search_engine.set('yandex')
+        self.common_settings()
+
+        data = self.search_engine.suggest(SEARCH_TEXT, alph=True)
+
+        self.assertNotEqual(0, len(data))
+
+    def test_yandex_suggest_with_num(self):
+        print('Test Yandex text suggest with num.')
+
+        self.search_engine.set('yandex')
+        self.common_settings()
+
+        data = self.search_engine.suggest(SEARCH_TEXT, num=True)
+
+        print("{} count.".format(len(data)))
+        self.assertNotEqual(0, len(data))

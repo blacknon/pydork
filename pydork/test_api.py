@@ -24,6 +24,13 @@ class SearchEngineApiTestCase(unittest.TestCase):
         with self.assertRaises(TypeError):
             search_engine.search('Linux', unexpected=True)
 
+    def test_search_rejects_unknown_search_type(self):
+        search_engine = SearchEngine()
+        search_engine.set('google')
+
+        with self.assertRaises(ValueError):
+            search_engine.search('Linux', search_type='video', maximum=0)
+
     def test_version_is_exposed(self):
         self.assertTrue(isinstance(pydork.__version__, str))
         self.assertNotEqual('', pydork.__version__)
@@ -43,3 +50,10 @@ class SearchEngineApiTestCase(unittest.TestCase):
 
         with self.assertRaises(ValueError):
             search_engine.set('unsupported')
+
+    def test_set_accepts_yandex_engine(self):
+        search_engine = SearchEngine()
+
+        search_engine.set('yandex')
+
+        self.assertEqual('Yandex', search_engine.ENGINE.NAME)

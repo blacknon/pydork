@@ -57,6 +57,14 @@ jobs:
             suggest_alph: test_duckduckgo_suggest_with_alph
             suggest_num: test_duckduckgo_suggest_with_num
 
+          - target: yandex
+            search_text: test_yandex_text_search
+            search_image: test_yandex_image_search
+            suggest: test_yandex_suggest
+            suggest_jap: test_yandex_suggest_with_jap
+            suggest_alph: test_yandex_suggest_with_alph
+            suggest_num: test_yandex_suggest_with_num
+
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4

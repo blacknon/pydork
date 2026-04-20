@@ -1,0 +1,39 @@
+# Copyright (c) 2021 Blacknon. All rights reserved.
+# Use of this source code is governed by an MIT license
+# that can be found in the LICENSE file.
+
+name: Build Docker image
+
+on:
+  push:
+    branches:
+      - master
+      - develop
+    paths:
+      - Dockerfile
+      - pyproject.toml
+      - setup.py
+      - README.md
+      - README.rst
+      - pydork/**
+      - .github/workflows/build_docker.yml
+  pull_request:
+    paths:
+      - Dockerfile
+      - pyproject.toml
+      - setup.py
+      - README.md
+      - README.rst
+      - pydork/**
+      - .github/workflows/build_docker.yml
+  workflow_dispatch:
+
+jobs:
+  docker-build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build Docker image
+        run: docker build --tag pydork-ci:latest .

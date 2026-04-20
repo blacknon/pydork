@@ -470,7 +470,7 @@ class CommonEngine:
                 EC.presence_of_all_elements_located)
 
             # wait 5 seconds(wait DOM)
-            if self.NAME in ('Bing', 'Baidu', 'DuckDuckGo'):  # type: ignore
+            if self.NAME in ('Bing', 'Baidu', 'DuckDuckGo', 'Yandex'):  # type: ignore
                 self.driver.implicitly_wait(20)
 
             # get result
@@ -484,7 +484,7 @@ class CommonEngine:
                 EC.presence_of_all_elements_located)
 
             # wait 5 seconds(wait DOM)
-            if self.NAME in ('Bing', 'Baidu', 'DuckDuckGo'):  # type: ignore
+            if self.NAME in ('Bing', 'Baidu', 'DuckDuckGo', 'Yandex'):  # type: ignore
                 self.driver.implicitly_wait(20)
 
             # get result
