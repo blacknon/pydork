@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import unittest
+from unittest import mock
 
 import pydork
 
@@ -57,3 +58,43 @@ class SearchEngineApiTestCase(unittest.TestCase):
         search_engine.set('yandex')
 
         self.assertEqual('Yandex', search_engine.ENGINE.NAME)
+
+    def test_suggest_sets_message_before_session_creation(self):
+        search_engine = SearchEngine()
+        search_engine.set('google')
+
+        observed = {}
+
+        def fake_create_session():
+            observed['has_message'] = hasattr(search_engine.ENGINE, 'MESSAGE')
+            observed['header'] = search_engine.ENGINE.MESSAGE.HEADER
+
+        def fake_close_session():
+            return None
+
+        with mock.patch.object(search_engine.ENGINE, 'create_session', fake_create_session):
+            with mock.patch.object(search_engine.ENGINE, 'close_session', fake_close_session):
+                with mock.patch.object(search_engine.ENGINE, 'get_result', return_value='[]'):
+                    with mock.patch.object(
+                        search_engine.ENGINE,
+                        'get_suggest_list',
+                        side_effect=lambda suggests, char, html: suggests,
+                    ):
+                        with mock.patch('pydork.engine.sleep', return_value=None):
+                            result = search_engine.suggest('Linux')
+
+        self.assertEqual({}, result)
+        self.assertTrue(observed['has_message'])
+        self.assertEqual('[${ENGINE_NAME}Search]', observed['header'])
+
+    def test_ignore_ssl_adds_chrome_option_only_when_enabled(self):
+        search_engine = SearchEngine()
+        search_engine.set('google')
+        search_engine.set_selenium(None, 'chrome')
+
+        default_options = search_engine.ENGINE.create_selenium_options()
+        self.assertNotIn('ignore-certificate-errors', default_options.arguments)
+
+        search_engine.set_ignore_ssl(True)
+        ignore_ssl_options = search_engine.ENGINE.create_selenium_options()
+        self.assertIn('ignore-certificate-errors', ignore_ssl_options.arguments)

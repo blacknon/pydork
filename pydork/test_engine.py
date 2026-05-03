@@ -15,7 +15,10 @@
 
 
 import os
+import socket
 import unittest
+
+import requests
 
 from .engine import SearchEngine
 
@@ -54,6 +57,12 @@ class SearchEngineTestCase(unittest.TestCase):
         # user agentを定義
         self.search_engine.set_user_agent()
 
+    def _run_live(self, func):
+        try:
+            return func()
+        except (requests.exceptions.RequestException, socket.gaierror) as exc:
+            self.skipTest("live search unavailable in this environment: {0}".format(exc))
+
     # ==========
     # Baidu
     # ==========
@@ -67,7 +76,9 @@ class SearchEngineTestCase(unittest.TestCase):
         self.common_settings()
 
         # 検索を実行
-        data = self.search_engine.search(SEARCH_TEXT, maximum=30)
+        data = self._run_live(
+            lambda: self.search_engine.search(SEARCH_TEXT, maximum=30)
+        )
 
         print("{} count.".format(len(data)))
         self.assertNotEqual(0, len(data))
@@ -82,7 +93,9 @@ class SearchEngineTestCase(unittest.TestCase):
         self.common_settings()
 
         # 検索を実行
-        data = self.search_engine.search(SEARCH_TEXT, type='image', maximum=30)
+        data = self._run_live(
+            lambda: self.search_engine.search(SEARCH_TEXT, type='image', maximum=30)
+        )
 
         print("{} count.".format(len(data)))
         self.assertNotEqual(0, len(data))
@@ -97,8 +110,9 @@ class SearchEngineTestCase(unittest.TestCase):
         self.common_settings()
 
         # 検索を実行
-        data = self.search_engine.suggest(
-            SEARCH_TEXT)
+        data = self._run_live(
+            lambda: self.search_engine.suggest(SEARCH_TEXT)
+        )
 
         print("{} count.".format(len(data)))
         self.assertNotEqual(0, len(data))
@@ -113,8 +127,9 @@ class SearchEngineTestCase(unittest.TestCase):
         self.common_settings()
 
         # 検索を実行
-        data = self.search_engine.suggest(
-            SEARCH_TEXT, alph=True)
+        data = self._run_live(
+            lambda: self.search_engine.suggest(SEARCH_TEXT, alph=True)
+        )
 
         self.assertNotEqual(0, len(data))
 
@@ -128,8 +143,9 @@ class SearchEngineTestCase(unittest.TestCase):
         self.common_settings()
 
         # 検索を実行
-        data = self.search_engine.suggest(
-            SEARCH_TEXT, num=True)
+        data = self._run_live(
+            lambda: self.search_engine.suggest(SEARCH_TEXT, num=True)
+        )
 
         print("{} count.".format(len(data)))
         self.assertNotEqual(0, len(data))
@@ -147,7 +163,9 @@ class SearchEngineTestCase(unittest.TestCase):
         self.common_settings()
 
         # 検索を実行
-        data = self.search_engine.search(SEARCH_TEXT, maximum=30)
+        data = self._run_live(
+            lambda: self.search_engine.search(SEARCH_TEXT, maximum=30)
+        )
 
         print("{} count.".format(len(data)))
         self.assertNotEqual(0, len(data))
@@ -162,7 +180,9 @@ class SearchEngineTestCase(unittest.TestCase):
         self.common_settings()
 
         # 検索を実行
-        data = self.search_engine.search(SEARCH_TEXT, type='image', maximum=30)
+        data = self._run_live(
+            lambda: self.search_engine.search(SEARCH_TEXT, type='image', maximum=30)
+        )
 
         print("{} count.".format(len(data)))
         self.assertEqual(30, len(data))
@@ -177,8 +197,9 @@ class SearchEngineTestCase(unittest.TestCase):
         self.common_settings()
 
         # 検索を実行
-        data = self.search_engine.suggest(
-            SEARCH_TEXT)
+        data = self._run_live(
+            lambda: self.search_engine.suggest(SEARCH_TEXT)
+        )
 
         print("{} count.".format(len(data)))
         self.assertNotEqual(0, len(data))
@@ -193,8 +214,9 @@ class SearchEngineTestCase(unittest.TestCase):
         self.common_settings()
 
         # 検索を実行
-        data = self.search_engine.suggest(
-            SEARCH_TEXT, jap=True)
+        data = self._run_live(
+            lambda: self.search_engine.suggest(SEARCH_TEXT, jap=True)
+        )
 
         print("{} count.".format(len(data)))
         self.assertNotEqual(0, len(data))
@@ -209,8 +231,9 @@ class SearchEngineTestCase(unittest.TestCase):
         self.common_settings()
 
         # 検索を実行
-        data = self.search_engine.suggest(
-            SEARCH_TEXT, alph=True)
+        data = self._run_live(
+            lambda: self.search_engine.suggest(SEARCH_TEXT, alph=True)
+        )
 
         self.assertNotEqual(0, len(data))
 
@@ -224,8 +247,9 @@ class SearchEngineTestCase(unittest.TestCase):
         self.common_settings()
 
         # 検索を実行
-        data = self.search_engine.suggest(
-            SEARCH_TEXT, num=True)
+        data = self._run_live(
+            lambda: self.search_engine.suggest(SEARCH_TEXT, num=True)
+        )
 
         print("{} count.".format(len(data)))
         self.assertNotEqual(0, len(data))
@@ -243,7 +267,9 @@ class SearchEngineTestCase(unittest.TestCase):
         self.common_settings()
 
         # 検索を実行
-        data = self.search_engine.search(SEARCH_TEXT, maximum=30)
+        data = self._run_live(
+            lambda: self.search_engine.search(SEARCH_TEXT, maximum=30)
+        )
 
         print("{} count.".format(len(data)))
         self.assertEqual(30, len(data))
@@ -258,7 +284,9 @@ class SearchEngineTestCase(unittest.TestCase):
         self.common_settings()
 
         # 検索を実行
-        data = self.search_engine.search(SEARCH_TEXT, type='image', maximum=30)
+        data = self._run_live(
+            lambda: self.search_engine.search(SEARCH_TEXT, type='image', maximum=30)
+        )
 
         print("{} count.".format(len(data)))
         self.assertEqual(30, len(data))
@@ -273,8 +301,9 @@ class SearchEngineTestCase(unittest.TestCase):
         self.common_settings()
 
         # 検索を実行
-        data = self.search_engine.suggest(
-            SEARCH_TEXT)
+        data = self._run_live(
+            lambda: self.search_engine.suggest(SEARCH_TEXT)
+        )
 
         print("{} count.".format(len(data)))
         self.assertNotEqual(0, len(data))
@@ -289,8 +318,9 @@ class SearchEngineTestCase(unittest.TestCase):
         self.common_settings()
 
         # 検索を実行
-        data = self.search_engine.suggest(
-            SEARCH_TEXT, jap=True)
+        data = self._run_live(
+            lambda: self.search_engine.suggest(SEARCH_TEXT, jap=True)
+        )
 
         print("{} count.".format(len(data)))
         self.assertNotEqual(0, len(data))
@@ -305,8 +335,9 @@ class SearchEngineTestCase(unittest.TestCase):
         self.common_settings()
 
         # 検索を実行
-        data = self.search_engine.suggest(
-            SEARCH_TEXT, alph=True)
+        data = self._run_live(
+            lambda: self.search_engine.suggest(SEARCH_TEXT, alph=True)
+        )
 
         self.assertNotEqual(0, len(data))
 
@@ -320,8 +351,9 @@ class SearchEngineTestCase(unittest.TestCase):
         self.common_settings()
 
         # 検索を実行
-        data = self.search_engine.suggest(
-            SEARCH_TEXT, num=True)
+        data = self._run_live(
+            lambda: self.search_engine.suggest(SEARCH_TEXT, num=True)
+        )
 
         print("{} count.".format(len(data)))
         self.assertNotEqual(0, len(data))
@@ -339,7 +371,9 @@ class SearchEngineTestCase(unittest.TestCase):
         self.common_settings()
 
         # 検索を実行
-        data = self.search_engine.search(SEARCH_TEXT, maximum=30)
+        data = self._run_live(
+            lambda: self.search_engine.search(SEARCH_TEXT, maximum=30)
+        )
 
         print("{} count.".format(len(data)))
         self.assertEqual(30, len(data))
@@ -354,7 +388,9 @@ class SearchEngineTestCase(unittest.TestCase):
         self.common_settings()
 
         # 検索を実行
-        data = self.search_engine.search(SEARCH_TEXT, type='image', maximum=30)
+        data = self._run_live(
+            lambda: self.search_engine.search(SEARCH_TEXT, type='image', maximum=30)
+        )
 
         print("{} count.".format(len(data)))
         self.assertEqual(30, len(data))
@@ -369,8 +405,9 @@ class SearchEngineTestCase(unittest.TestCase):
         self.common_settings()
 
         # 検索を実行
-        data = self.search_engine.suggest(
-            SEARCH_TEXT)
+        data = self._run_live(
+            lambda: self.search_engine.suggest(SEARCH_TEXT)
+        )
 
         print("{} count.".format(len(data)))
         self.assertNotEqual(0, len(data))
@@ -385,8 +422,9 @@ class SearchEngineTestCase(unittest.TestCase):
         self.common_settings()
 
         # 検索を実行
-        data = self.search_engine.suggest(
-            SEARCH_TEXT, jap=True)
+        data = self._run_live(
+            lambda: self.search_engine.suggest(SEARCH_TEXT, jap=True)
+        )
 
         print("{} count.".format(len(data)))
         self.assertNotEqual(0, len(data))
@@ -401,8 +439,9 @@ class SearchEngineTestCase(unittest.TestCase):
         self.common_settings()
 
         # 検索を実行
-        data = self.search_engine.suggest(
-            SEARCH_TEXT, alph=True)
+        data = self._run_live(
+            lambda: self.search_engine.suggest(SEARCH_TEXT, alph=True)
+        )
 
         self.assertNotEqual(0, len(data))
 
@@ -416,8 +455,9 @@ class SearchEngineTestCase(unittest.TestCase):
         self.common_settings()
 
         # 検索を実行
-        data = self.search_engine.suggest(
-            SEARCH_TEXT, num=True)
+        data = self._run_live(
+            lambda: self.search_engine.suggest(SEARCH_TEXT, num=True)
+        )
 
         print("{} count.".format(len(data)))
         self.assertNotEqual(0, len(data))
@@ -435,7 +475,9 @@ class SearchEngineTestCase(unittest.TestCase):
         self.common_settings()
 
         # 検索を実行
-        data = self.search_engine.search(SEARCH_TEXT, maximum=30)
+        data = self._run_live(
+            lambda: self.search_engine.search(SEARCH_TEXT, maximum=30)
+        )
 
         print("{} count.".format(len(data)))
         self.assertEqual(30, len(data))
@@ -450,7 +492,9 @@ class SearchEngineTestCase(unittest.TestCase):
         self.common_settings()
 
         # 検索を実行
-        data = self.search_engine.search(SEARCH_TEXT, type='image', maximum=30)
+        data = self._run_live(
+            lambda: self.search_engine.search(SEARCH_TEXT, type='image', maximum=30)
+        )
 
         print("{} count.".format(len(data)))
         self.assertEqual(30, len(data))
@@ -465,8 +509,9 @@ class SearchEngineTestCase(unittest.TestCase):
         self.common_settings()
 
         # 検索を実行
-        data = self.search_engine.suggest(
-            SEARCH_TEXT)
+        data = self._run_live(
+            lambda: self.search_engine.suggest(SEARCH_TEXT)
+        )
 
         print("{} count.".format(len(data)))
         self.assertNotEqual(0, len(data))
@@ -481,8 +526,9 @@ class SearchEngineTestCase(unittest.TestCase):
         self.common_settings()
 
         # 検索を実行
-        data = self.search_engine.suggest(
-            SEARCH_TEXT, jap=True)
+        data = self._run_live(
+            lambda: self.search_engine.suggest(SEARCH_TEXT, jap=True)
+        )
 
         print("{} count.".format(len(data)))
         self.assertNotEqual(0, len(data))
@@ -497,8 +543,9 @@ class SearchEngineTestCase(unittest.TestCase):
         self.common_settings()
 
         # 検索を実行
-        data = self.search_engine.suggest(
-            SEARCH_TEXT, alph=True)
+        data = self._run_live(
+            lambda: self.search_engine.suggest(SEARCH_TEXT, alph=True)
+        )
 
         self.assertNotEqual(0, len(data))
 
@@ -512,8 +559,9 @@ class SearchEngineTestCase(unittest.TestCase):
         self.common_settings()
 
         # 検索を実行
-        data = self.search_engine.suggest(
-            SEARCH_TEXT, num=True)
+        data = self._run_live(
+            lambda: self.search_engine.suggest(SEARCH_TEXT, num=True)
+        )
 
         print("{} count.".format(len(data)))
         self.assertNotEqual(0, len(data))
@@ -527,7 +575,9 @@ class SearchEngineTestCase(unittest.TestCase):
         self.search_engine.set('yandex')
         self.common_settings()
 
-        data = self.search_engine.search(SEARCH_TEXT, maximum=30)
+        data = self._run_live(
+            lambda: self.search_engine.search(SEARCH_TEXT, maximum=30)
+        )
 
         print("{} count.".format(len(data)))
         self.assertNotEqual(0, len(data))
@@ -538,7 +588,9 @@ class SearchEngineTestCase(unittest.TestCase):
         self.search_engine.set('yandex')
         self.common_settings()
 
-        data = self.search_engine.search(SEARCH_TEXT, type='image', maximum=30)
+        data = self._run_live(
+            lambda: self.search_engine.search(SEARCH_TEXT, type='image', maximum=30)
+        )
 
         print("{} count.".format(len(data)))
         self.assertNotEqual(0, len(data))
@@ -549,7 +601,7 @@ class SearchEngineTestCase(unittest.TestCase):
         self.search_engine.set('yandex')
         self.common_settings()
 
-        data = self.search_engine.suggest(SEARCH_TEXT)
+        data = self._run_live(lambda: self.search_engine.suggest(SEARCH_TEXT))
 
         print("{} count.".format(len(data)))
         self.assertNotEqual(0, len(data))
@@ -560,7 +612,9 @@ class SearchEngineTestCase(unittest.TestCase):
         self.search_engine.set('yandex')
         self.common_settings()
 
-        data = self.search_engine.suggest(SEARCH_TEXT, jap=True)
+        data = self._run_live(
+            lambda: self.search_engine.suggest(SEARCH_TEXT, jap=True)
+        )
 
         print("{} count.".format(len(data)))
         self.assertNotEqual(0, len(data))
@@ -571,7 +625,9 @@ class SearchEngineTestCase(unittest.TestCase):
         self.search_engine.set('yandex')
         self.common_settings()
 
-        data = self.search_engine.suggest(SEARCH_TEXT, alph=True)
+        data = self._run_live(
+            lambda: self.search_engine.suggest(SEARCH_TEXT, alph=True)
+        )
 
         self.assertNotEqual(0, len(data))
 
@@ -581,7 +637,9 @@ class SearchEngineTestCase(unittest.TestCase):
         self.search_engine.set('yandex')
         self.common_settings()
 
-        data = self.search_engine.suggest(SEARCH_TEXT, num=True)
+        data = self._run_live(
+            lambda: self.search_engine.suggest(SEARCH_TEXT, num=True)
+        )
 
         print("{} count.".format(len(data)))
         self.assertNotEqual(0, len(data))

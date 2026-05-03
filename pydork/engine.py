@@ -558,6 +558,20 @@ class SearchEngine:
             [list]: {'with char': ['suggest1', 'suggest2' ...]}
         """
 
+        # ENGINE.MESSAGEへis_command/is_debugを渡す
+        self.MESSAGE.set_is_command(self.ENGINE.IS_COMMAND)
+        self.MESSAGE.set_is_debug(self.ENGINE.IS_DEBUG)
+
+        # Set header
+        header = '[${ENGINE_NAME}Search]'
+        if self.IS_COLOR:
+            sc = Color(self.ENGINE.COLOR)
+            header = sc.out(header)
+        self.MESSAGE.set_header(header)
+
+        # ENGINEへMessage()を渡す
+        self.ENGINE.set_messages(self.MESSAGE)
+
         # ENGINEのproxyやブラウザオプションを、各接続方式(Selenium, Splash, requests)に応じてセットし、ブラウザ(session)を作成する
         self.ENGINE.create_session()
 

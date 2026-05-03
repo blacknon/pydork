@@ -63,7 +63,7 @@ class CommonEngine:
         self.IS_DEBUG = False
         self.IS_COMMAND = False
         self.IS_DISABLE_HEADLESS = False
-        self.MESSAGE: Message
+        self.MESSAGE = Message()
         self.IGNORE_SSL_VERIFY = False
 
         # ReCaptcha画面かどうかの識別用(初期値(ブランク))
@@ -341,7 +341,7 @@ class CommonEngine:
             options = ChromeOptions()
 
             # set ssl verify
-            if not self.IGNORE_SSL_VERIFY:
+            if self.IGNORE_SSL_VERIFY:
                 options.add_argument('ignore-certificate-errors')
 
         elif self.SELENIUM_BROWSER == 'firefox':
@@ -377,11 +377,8 @@ class CommonEngine:
             try:
                 chromedriver_autoinstaller.install()
             except (OSError, RuntimeError):
-                self.MESSAGE.print_text(
-                    'failed to auto-install chromedriver, trying existing driver',
-                    mode='warn',
-                    header=self.NAME,
-                    separator=': ',
+                self._print_warning(
+                    'failed to auto-install chromedriver, trying existing driver'
                 )
 
             self.driver = Chrome(options=options)
@@ -427,17 +424,14 @@ class CommonEngine:
                     profile.update_preferences()
 
             # set ssl verify(firefoxの場合はprofileで処理するのでこちらに記述する)
-            if not self.IGNORE_SSL_VERIFY:
+            if self.IGNORE_SSL_VERIFY:
                 profile.accept_untrusted_certs = True
 
             try:
                 geckodriver_autoinstaller.install()
             except (OSError, RuntimeError):
-                self.MESSAGE.print_text(
-                    'failed to auto-install geckodriver, trying existing driver',
-                    mode='warn',
-                    header=self.NAME,
-                    separator=': ',
+                self._print_warning(
+                    'failed to auto-install geckodriver, trying existing driver'
                 )
             self.driver = Firefox(options=options, firefox_profile=profile)
 
